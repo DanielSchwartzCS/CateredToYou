@@ -1,4 +1,4 @@
-package com.example.cateredtoyou.APIFiles
+package com.example.cateredtoyou.apifiles
 
 import retrofit2.Call
 import retrofit2.Retrofit

@@ -8,9 +8,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.example.cateredtoyou.APIFiles.DatabaseApi
+import com.example.cateredtoyou.apifiles.DatabaseApi
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

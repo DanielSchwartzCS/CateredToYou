@@ -1,4 +1,4 @@
-package com.example.cateredtoyou.APIFiles
+package com.example.cateredtoyou.apifiles
 
 data class Users(
     val id: Int,
