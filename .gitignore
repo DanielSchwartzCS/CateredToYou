@@ -1,0 +1,40 @@
+# Gradle files
+.gradle/
+build/
+*/build/
+gradle-wrapper.jar
+gradle-wrapper.properties
+
+# Local configuration files
+.local.properties
+.idea/
+*.iml
+
+# Android Studio specific files
+*.log
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.apk
+*.ap_
+*.dex
+*.class
+
+# Kotlin specific
+*.kotlin_metadata
+*.kapt.*
+*.ktlint
+
+# NDK
+.externalNativeBuild/
+
+# Others
+*.orig
+*.patch
+*.tmp
+*.bak
+*.swp
