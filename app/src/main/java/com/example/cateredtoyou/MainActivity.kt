@@ -1,98 +1,83 @@
 package com.example.cateredtoyou
 
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.cateredtoyou.apifiles.AddUserResponse
-import com.example.cateredtoyou.apifiles.ApiConnect
-import com.example.cateredtoyou.apifiles.DatabaseApi
-import com.example.cateredtoyou.apifiles.User
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
-class MainActivity : AppCompatActivity() , View.OnClickListener{
+class MainActivity : AppCompatActivity() {
 
-    lateinit var btnAdd : Button
-    lateinit var btnView: Button
-    lateinit var etA : EditText
-    lateinit var etB : EditText
-    lateinit var resultTv : TextView
+    private var quantities = mutableMapOf("Beef" to 0, "Chicken" to 0, "Pork" to 0)
+    private lateinit var itemQuantityTextViewBeef: TextView
+    private lateinit var itemQuantityTextViewChicken: TextView
+    private lateinit var itemQuantityTextViewPork: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        val itemNameTextViewBeef: TextView = findViewById(R.id.item_name_beef)
+        itemQuantityTextViewBeef = findViewById(R.id.item_quantity_beef)
+        val increaseButtonBeef: Button = findViewById(R.id.increase_button_beef)
+        val decreaseButtonBeef: Button = findViewById(R.id.decrease_button_beef)
 
-        btnAdd = findViewById(R.id.btn_add)
-        btnView = findViewById(R.id.btn_view)
-        etA = findViewById(R.id.et_a)
-        etB = findViewById(R.id.et_b)
-        resultTv = findViewById(R.id.result_tv)
+        val itemNameTextViewChicken: TextView = findViewById(R.id.item_name_chicken)
+        itemQuantityTextViewChicken = findViewById(R.id.item_quantity_chicken)
+        val increaseButtonChicken: Button = findViewById(R.id.increase_button_chicken)
+        val decreaseButtonChicken: Button = findViewById(R.id.decrease_button_chicken)
 
-        btnAdd.setOnClickListener(this)
-        btnView.setOnClickListener(this)
+        val itemNameTextViewPork: TextView = findViewById(R.id.item_name_pork)
+        itemQuantityTextViewPork = findViewById(R.id.item_quantity_pork)
+        val increaseButtonPork: Button = findViewById(R.id.increase_button_pork)
+        val decreaseButtonPork: Button = findViewById(R.id.decrease_button_pork)
 
+        // Set initial quantities
+        updateQuantity("Beef")
+        updateQuantity("Chicken")
+        updateQuantity("Pork")
 
-    }
+        increaseButtonBeef.setOnClickListener {
+            quantities["Beef"] = quantities["Beef"]!! + 1
+            updateQuantity("Beef")
+        }
 
-    override fun onClick(v: View?) {
-        var a = etA.text.toString()
-        var b = etB.text.toString()
-        when(v?.id){
-
-            R.id.btn_view -> {
-                getUsers()
+        decreaseButtonBeef.setOnClickListener {
+            if (quantities["Beef"]!! > 0) {
+                quantities["Beef"] = quantities["Beef"]!! - 1
+                updateQuantity("Beef")
             }
-            R.id.btn_add -> {
-                AddUser(a, b)
-            }
+        }
 
+        increaseButtonChicken.setOnClickListener {
+            quantities["Chicken"] = quantities["Chicken"]!! + 1
+            updateQuantity("Chicken")
+        }
+
+        decreaseButtonChicken.setOnClickListener {
+            if (quantities["Chicken"]!! > 0) {
+                quantities["Chicken"] = quantities["Chicken"]!! - 1
+                updateQuantity("Chicken")
+            }
+        }
+
+        increaseButtonPork.setOnClickListener {
+            quantities["Pork"] = quantities["Pork"]!! + 1
+            updateQuantity("Pork")
+        }
+
+        decreaseButtonPork.setOnClickListener {
+            if (quantities["Pork"]!! > 0) {
+                quantities["Pork"] = quantities["Pork"]!! - 1
+                updateQuantity("Pork")
+            }
         }
     }
-    private fun AddUser(username: String, password: String){
-        val call = DatabaseApi.retrofitService.addUser(username, password)
-        call.enqueue(object : Callback<AddUserResponse>{
-            override fun onResponse(call: Call<AddUserResponse>, response: Response<AddUserResponse>) {
-                if(response.isSuccessful){
-                    val rawResponse = response.body()
-                    if(rawResponse?.status == "success"){
-                        resultTv.text = rawResponse.message
-                    }else{
-                        resultTv.text = rawResponse?.message
-                    }
-                }
-            }
 
-            override fun onFailure(call: Call<AddUserResponse>, t: Throwable) {
-                Log.e("MainActivity", "Failed to add users", t)
-            }
-        })
+    private fun updateQuantity(item: String) {
+        when (item) {
+            "Beef" -> itemQuantityTextViewBeef.text = "Quantity: ${quantities[item]}"
+            "Chicken" -> itemQuantityTextViewChicken.text = "Quantity: ${quantities[item]}"
+            "Pork" -> itemQuantityTextViewPork.text = "Quantity: ${quantities[item]}"
+        }
     }
-
-    private fun getUsers(){
-        DatabaseApi.retrofitService.getUsers().enqueue(object : Callback<List<User>> {
-            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                if(response.isSuccessful){
-                    val rawResponse = response.body()
-                    resultTv.text = rawResponse?.joinToString { "\n'id': ${it.id}, 'username': ${it.username}, 'pass': ${it.pass}" }
-                }else{
-                    Log.e("MainActivity", "Response failed with code: ${response.code()}")
-                }
-            }
-
-            override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                Log.e("MainActivity", "Failed to fetch users", t)
-            }
-        })
-    }
-
-
-
 }
