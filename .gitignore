@@ -1,40 +1,15 @@
-# Gradle files
-.gradle/
-build/
-*/build/
-gradle-wrapper.jar
-gradle-wrapper.properties
-
-# Local configuration files
-.local.properties
-.idea/
 *.iml
-
-# Android Studio specific files
-*.log
-*.swp
-
-# OS-specific files
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
 .DS_Store
-Thumbs.db
-
-# Generated files
-*.apk
-*.ap_
-*.dex
-*.class
-
-# Kotlin specific
-*.kotlin_metadata
-*.kapt.*
-*.ktlint
-
-# NDK
-.externalNativeBuild/
-
-# Others
-*.orig
-*.patch
-*.tmp
-*.bak
-*.swp
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
