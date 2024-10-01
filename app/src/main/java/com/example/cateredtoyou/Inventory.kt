@@ -5,7 +5,9 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : AppCompatActivity() {
+class Inventory : AppCompatActivity() {
+
+
 
     private var quantities = mutableMapOf("Beef" to 0, "Chicken" to 0, "Pork" to 0)
     private lateinit var itemQuantityTextViewBeef: TextView
@@ -15,6 +17,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inventory)
+
+        // Find the back button and set the finish() style to return to the previous screen
+        val backButton: Button = findViewById(R.id.back_to_dashboard)
+        backButton.setOnClickListener {
+            finish() // Close this activity and return to the previous one (Dashboard)
+        }
 
         val itemNameTextViewBeef: TextView = findViewById(R.id.item_name_beef)
         itemQuantityTextViewBeef = findViewById(R.id.item_quantity_beef)
