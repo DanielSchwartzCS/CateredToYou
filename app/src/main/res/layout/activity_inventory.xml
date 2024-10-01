@@ -5,6 +5,14 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Back button in the top-left corner -->
+    <Button
+        android:id="@+id/back_to_MainActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:layout_gravity="start"/>
+
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
