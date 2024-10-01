@@ -38,6 +38,11 @@
             android:name=".UserActivity"
             android:exported="false">
         </activity>
+        <activity
+            android:name=".RecipeActivity"
+            android:exported="false">
+        </activity>
+             <!-- Ensure this line is present -->
     </application>
 
 </manifest>
