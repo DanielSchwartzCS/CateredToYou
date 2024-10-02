@@ -29,6 +29,12 @@ class EventsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_events)
 
+        // Find the back button and set the finish() style to return to the previous screen
+        val backButton: Button = findViewById(R.id.back_to_MainActivity)
+        backButton.setOnClickListener {
+            finish() // Close this activity and return to the previous one (Dashboard)
+        }
+
         eventNameInput = findViewById(R.id.event_name_input)
         eventDateInput = findViewById(R.id.event_date_input)
         eventLocationInput = findViewById(R.id.event_location_input)

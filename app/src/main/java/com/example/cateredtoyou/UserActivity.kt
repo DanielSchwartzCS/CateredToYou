@@ -29,6 +29,13 @@ class UserActivity : AppCompatActivity() , View.OnClickListener{
         setContentView(R.layout.activity_user)
 
 
+        // Find the back button and set the finish() style to return to the previous screen
+        val backButton: Button = findViewById(R.id.back_to_MainActivity)
+        backButton.setOnClickListener {
+            finish() // Close this activity and return to the previous one (Dashboard)
+        }
+
+
         btnAdd = findViewById(R.id.btn_add)
         btnView = findViewById(R.id.btn_view)
         etA = findViewById(R.id.et_a)
