@@ -42,6 +42,10 @@
             android:name=".RecipeActivity"
             android:exported="false">
         </activity>
+        <activity
+            android:name=".EventsView"
+            android:exported="false">
+        </activity>
              <!-- Ensure this line is present -->
     </application>
 

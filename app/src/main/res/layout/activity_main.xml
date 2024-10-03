@@ -25,8 +25,16 @@
         android:id="@+id/btn_events"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Events"
+        android:text="Create Event"
         android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btn_eventsview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Events"
+        android:layout_marginBottom="16dp" />
+
 
     <Button
         android:id="@+id/btn_users"

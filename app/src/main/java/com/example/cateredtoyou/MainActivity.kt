@@ -35,5 +35,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, RecipeActivity::class.java)
             startActivity(intent)
         }
+
+        // New button for EventsView
+        val btnEventsView: Button = findViewById(R.id.btn_eventsview)
+        btnEventsView.setOnClickListener {
+            val intent = Intent(this, EventsView::class.java)
+            startActivity(intent)
+        }
     }
 }
