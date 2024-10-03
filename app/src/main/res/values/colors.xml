@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primaryColor">#FFC533</color> <!-- Example of a warm orange -->
+    <color name="primaryColorVariant">#E07A5F</color> <!-- A darker orange variant -->
+    <color name="secondaryColor">#FFFFFF</color> <!-- White for secondary -->
+    <color name="colorOnPrimary">#000000</color> <!-- Black text on orange background -->
+    <color name="colorOnSecondary">#000000</color> <!-- Black text on white background -->
 </resources>
