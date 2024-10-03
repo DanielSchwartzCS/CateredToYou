@@ -9,6 +9,9 @@
     android:layout_margin="20dp"
     tools:context=".UserActivity">
 
+
+
+
     <EditText
         android:id="@+id/et_a"
         android:layout_width="match_parent"
@@ -37,6 +40,8 @@
             android:textSize="24sp" />
 
 
+
+
     </LinearLayout>
     <Button
         android:id="@+id/btn_view"
@@ -45,6 +50,15 @@
         android:layout_margin="4dp"
         android:textSize="24sp"
         android:text="View Users" />
+ <!-- back button under( view users button)4 smaller and left-->
+    <Button
+        android:id="@+id/back_to_MainActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_margin="4dp"
+        android:text="Back"
+        android:textSize="24sp" />
 
     <FrameLayout
         android:layout_width="fill_parent"
@@ -54,10 +68,12 @@
         <TextView
             android:id="@+id/result_tv"
             android:layout_width="match_parent"
-            android:layout_height="270dp"
+            android:layout_height="200dp"
             android:layout_margin="20dp"
             android:gravity="center|bottom"
             android:textSize="24sp" />
+
+
 
     </FrameLayout>
 
