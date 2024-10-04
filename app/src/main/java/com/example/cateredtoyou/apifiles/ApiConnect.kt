@@ -8,7 +8,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
-private const val BASE_URL = "http://ec2-54-215-193-219.us-west-1.compute.amazonaws.com/"
+private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/"
 //http://ec2-54-215-193-219.us-west-1.compute.amazonaws.com/
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
     .baseUrl(BASE_URL)
@@ -16,6 +16,15 @@ private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFacto
 
 interface ApiConnect {
     @FormUrlEncoded
+    @POST("login.php")
+    fun loginCheck(
+        @Field("username") username: String,
+        @Field("password") password: String
+
+    ): Call<LoginResponse>
+
+
+
     @POST("add_user.php")
     fun addUser(
         @Field("username") username: String,
@@ -42,4 +51,9 @@ data class User(
     val id: Int,
     val username: String,
     val pass: String
+)
+
+data class LoginResponse(
+    val status: Boolean,
+    val message: String
 )
