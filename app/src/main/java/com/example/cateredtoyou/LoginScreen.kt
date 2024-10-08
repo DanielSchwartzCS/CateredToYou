@@ -24,15 +24,18 @@ class LoginScreen : AppCompatActivity() {
         val loginButton: Button = findViewById(R.id.login_button)
 
         loginButton.setOnClickListener {
+            // turn the input into strings
             val username = usernameEditText.text.toString()
             val password = passwordEditText.text.toString()
 
+            // connecting to the api using functions created in ApiConnect.kt
+            // specifically calling the loginCheck functions that takes a username and password
             val call = DatabaseApi.retrofitService.loginCheck(username, password)
-            call.enqueue(object : Callback<LoginResponse> {
+            call.enqueue(object : Callback<LoginResponse> { // call to the api which requires a response based on the data classes in ApiConnect.kt
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>){
-                    if(response.isSuccessful) {
-                        val rawResponse = response.body()
-                        val message = rawResponse?.message
+                    if(response.isSuccessful) { // only does this if the connection is a success
+                        val rawResponse = response.body() // rawResponse holds the response of the json file
+                        val message = rawResponse?.message // message holds the message portion of json file
                         if (rawResponse?.status == true) {
                             val intent = Intent(this@LoginScreen, MainActivity::class.java)
                             startActivity(intent)
@@ -43,7 +46,7 @@ class LoginScreen : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                override fun onFailure(call: Call<LoginResponse>, t: Throwable) { // if connections fails
                     Log.e("LoginScreen", "Failed to authorize user", t)
                 }
             })
