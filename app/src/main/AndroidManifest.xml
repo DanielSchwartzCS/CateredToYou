@@ -14,43 +14,46 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CateredToYou"
         tools:targetApi="31">
+
         <activity
-            android:name=".LoginScreen"
+            android:name=".LandingActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".LoginScreen"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".InventoryActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".EventsActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".UserActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".RecipeActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".EventsView"
-            android:exported="false">
-        </activity>
+            android:exported="false" />
+
         <activity
             android:name=".TaskView"
-            android:exported="false">
-        </activity>
-             <!-- Ensure this line is present -->
+            android:exported="false" />
     </application>
-
 </manifest>
