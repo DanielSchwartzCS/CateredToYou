@@ -42,5 +42,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, EventsView::class.java)
             startActivity(intent)
         }
+
+        //New button for Task View
+        val btnTaskView: Button = findViewById(R.id.btn_taskview)
+        btnTaskView.setOnClickListener {
+            val intent = Intent(this, TaskView::class.java)
+            startActivity(intent)
+        }
+
+
     }
 }
