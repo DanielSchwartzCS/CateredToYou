@@ -32,13 +32,13 @@ class LoginScreen : AppCompatActivity() {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>){
                     if(response.isSuccessful) {
                         val rawResponse = response.body()
-                        val message = response.message().toString()
+                        val message = rawResponse?.message
                         if (rawResponse?.status == true) {
                             val intent = Intent(this@LoginScreen, MainActivity::class.java)
                             startActivity(intent)
                             finish()
                         } else {
-                            Toast.makeText(this@LoginScreen, response.message(), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@LoginScreen, message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
