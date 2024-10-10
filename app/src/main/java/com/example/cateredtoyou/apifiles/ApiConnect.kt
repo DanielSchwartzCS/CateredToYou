@@ -42,6 +42,15 @@ interface ApiConnect {
     fun getUsers(): Call<List<User>>
 }
 
+
+
+
+
+
+
+
+
+
 // the connection object
 object DatabaseApi{
     val retrofitService : ApiConnect by lazy {
@@ -66,3 +75,4 @@ data class LoginResponse(
     val status: Boolean,
     val message: String
 )
+

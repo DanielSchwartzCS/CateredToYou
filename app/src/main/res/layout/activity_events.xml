@@ -1,85 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <!-- Back button in the top-left corner -->
-    <Button
-        android:id="@+id/back_to_MainActivity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Back"
-        android:layout_gravity="start"/>
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Events"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp" />
-
-    <EditText
-        android:id="@+id/event_name_input"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Event Name"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <EditText
-        android:id="@+id/event_date_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Event Date (DD/MM/YYYY)"
-        android:inputType="date"
-        android:layout_marginBottom="8dp" />
+        <Button
+            android:id="@+id/back_to_MainActivity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_gravity="start"/>
 
-    <EditText
-        android:id="@+id/event_location_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Event Location"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Events"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp" />
 
-    <EditText
-        android:id="@+id/client_name_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Client Name"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/event_name_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Name"
+            android:inputType="text"
+            android:layout_marginBottom="8dp" />
 
-    <EditText
-        android:id="@+id/expected_guests_input"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Expected Guests"
-        android:inputType="number"
-        android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/event_date_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Date (DD/MM/YYYY)"
+            android:inputType="date"
+            android:layout_marginBottom="8dp" />
 
-    <Spinner
-        android:id="@+id/status_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/event_start_time_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Start Time (HH:MM)"
+            android:inputType="time"
+            android:layout_marginBottom="8dp" />
 
-    <Button
-        android:id="@+id/add_event_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Event"
-        android:layout_marginBottom="16dp" />
+        <EditText
+            android:id="@+id/event_end_time_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="End Time (HH:MM)"
+            android:inputType="time"
+            android:layout_marginBottom="8dp" />
 
-    <ListView
-        android:id="@+id/events_list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <EditText
+            android:id="@+id/event_location_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Location"
+            android:inputType="text"
+            android:layout_marginBottom="8dp" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Client or Create New:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <Spinner
+                android:id="@+id/client_spinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/create_new_client_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Client"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/expected_guests_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Expected Guests"
+            android:inputType="number"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event Status:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/status_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assign Staff:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/select_staff_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Staff (0 selected)"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Menu Items:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <ListView
+            android:id="@+id/menu_item_list"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Equipment:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <ListView
+            android:id="@+id/equipment_list"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/add_event_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Event"
+            android:layout_marginBottom="16dp" />
+
+        <ListView
+            android:id="@+id/events_list"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
+
+    </LinearLayout>
+</ScrollView>
