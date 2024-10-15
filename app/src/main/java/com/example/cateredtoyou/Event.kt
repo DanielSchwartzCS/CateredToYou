@@ -31,12 +31,14 @@ data class Event(
 
 data class Client(
     val id: Int,
-    val name: String,
-    val contactNumber: String,
+    val firstname: String,
+    val lastname: String,
     val email: String,
-    val address: String
+    val phonenumber: String
 ) {
-    override fun toString(): String = name
+    override fun toString(): String {
+        return "$firstname $lastname"
+    }
 }
 
 data class Staff(

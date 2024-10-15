@@ -1,5 +1,6 @@
 package com.example.cateredtoyou.apifiles
 
+import com.example.cateredtoyou.Client
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.Retrofit
@@ -38,18 +39,12 @@ interface ApiConnect {
     ): Call<AddUserResponse>
 
 
-    @GET("get_users_new.php")
+    @GET("get_users.php")
     fun getUsers(): Call<List<User>>
+
+    @GET("get_clients.php")
+    fun getClient(): Call<List<Client>>
 }
-
-
-
-
-
-
-
-
-
 
 // the connection object
 object DatabaseApi{

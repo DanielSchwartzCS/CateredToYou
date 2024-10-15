@@ -1,9 +1,15 @@
 package com.example.cateredtoyou
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.cateredtoyou.apifiles.DatabaseApi
+import com.example.cateredtoyou.apifiles.User
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -39,9 +45,10 @@ class EventsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_events)
 
+        clients = emptyList()
+
         initializeViews()
         setupDummyData()
-        setupSpinners()
         setupListViews()
         setupEventsList()
         setupListeners()
@@ -67,10 +74,23 @@ class EventsActivity : AppCompatActivity() {
     }
 
     private fun setupDummyData() {
-        clients = listOf(
-            Client(1, "John Doe", "123-456-7890", "john@example.com", "123 Main St"),
-            Client(2, "Jane Smith", "987-654-3210", "jane@example.com", "456 Elm St")
-        )
+        DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
+            override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
+                if(response.isSuccessful){
+                    clients = response.body() ?: emptyList()
+                    Log.d("EventsActivity", "Clients: $clients")
+                    setupSpinners()
+                }
+            }
+
+            override fun onFailure(call: Call<List<Client>>, t: Throwable) {
+                Log.e("EventsActivity", "Failed to fetch client", t)
+            }
+        })
+//        clients = listOf(
+//            Client(1, "John Doe", "123-456-7890", "john@example.com", "123 Main St"),
+//            Client(2, "Jane Smith", "987-654-3210", "jane@example.com", "456 Elm St")
+//        )
         staffList = listOf(
             Staff(1, "Alice", "Chef"),
             Staff(2, "Bob", "Waiter"),
