@@ -19,14 +19,23 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Image Holder at the top -->
             <ImageView
                 android:id="@+id/logo_image"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_gravity="center"
                 android:src="@drawable/company_placeholder_icon"
-            />
+                android:layout_marginBottom="24dp"/>
+
+            <TextView
+                android:id="@+id/login_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome Back!"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"
+                android:layout_gravity="center"/>
 
             <!-- Username Field -->
             <EditText
@@ -36,8 +45,8 @@
                 android:hint="Username"
                 android:inputType="textPersonName"
                 android:padding="18dp"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/edit_text_background"/>
+                android:layout_marginTop="32dp"
+            android:background="@drawable/edit_text_background"/>
 
             <!-- Password Field -->
             <EditText
@@ -47,8 +56,8 @@
                 android:hint="Password"
                 android:inputType="textPassword"
                 android:padding="18dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/edit_text_background"/>
+                android:layout_marginTop="24dp"
+            android:background="@drawable/edit_text_background"/>
 
             <!-- Login Button -->
             <Button
@@ -58,7 +67,7 @@
                 android:text="Login"
                 android:textSize="25sp"
                 android:padding="20dp"
-                android:layout_marginTop="20dp"/>
+                android:layout_marginTop="32dp"/>
         </LinearLayout>
 
     </ScrollView>
@@ -73,5 +82,6 @@
         android:textSize="16sp"
         android:textColor="@android:color/black"
         android:layout_gravity="center_horizontal"
-        android:padding="16dp"/>
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"/>
 </LinearLayout>
