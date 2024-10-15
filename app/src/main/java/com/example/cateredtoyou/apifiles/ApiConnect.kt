@@ -1,7 +1,10 @@
 package com.example.cateredtoyou.apifiles
 
+import android.util.Log
 import com.example.cateredtoyou.Client
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -71,3 +74,22 @@ data class LoginResponse(
     val message: String
 )
 
+fun clientCall(
+    onSuccess: (List<Client>) -> Unit,
+    onFailure: (Throwable) -> Unit = {t -> Log.e("ApiConnect", "Failed to connect", t)}
+){
+    DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
+        override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
+            if (response.isSuccessful) {
+                val rawResponse = response.body() ?: emptyList()
+                onSuccess(rawResponse)
+            }else{
+                onFailure(Throwable("Failed to load clients: ${response.message()}"))
+            }
+        }
+
+        override fun onFailure(call: Call<List<Client>>, t: Throwable) {
+            onFailure(t)
+        }
+    })
+}

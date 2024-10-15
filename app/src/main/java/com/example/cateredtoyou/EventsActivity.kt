@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cateredtoyou.apifiles.DatabaseApi
 import com.example.cateredtoyou.apifiles.User
+import com.example.cateredtoyou.apifiles.clientCall
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -74,19 +75,10 @@ class EventsActivity : AppCompatActivity() {
     }
 
     private fun setupDummyData() {
-        DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
-            override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
-                if(response.isSuccessful){
-                    clients = response.body() ?: emptyList()
-                    Log.d("EventsActivity", "Clients: $clients")
-                    setupSpinners()
-                }
-            }
+        clientCall(onSuccess = {response -> clients = response; setupSpinners()},
+            onFailure = { Log.e("EventsActivity","Failed to connect");
+                Toast.makeText(this, "Couldn't connect to client list", Toast.LENGTH_SHORT).show()})
 
-            override fun onFailure(call: Call<List<Client>>, t: Throwable) {
-                Log.e("EventsActivity", "Failed to fetch client", t)
-            }
-        })
 //        clients = listOf(
 //            Client(1, "John Doe", "123-456-7890", "john@example.com", "123 Main St"),
 //            Client(2, "Jane Smith", "987-654-3210", "jane@example.com", "456 Elm St")
