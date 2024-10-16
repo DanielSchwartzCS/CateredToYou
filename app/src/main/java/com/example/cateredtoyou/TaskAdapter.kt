@@ -1,6 +1,7 @@
 package com.example.cateredtoyou
 
 import android.content.Context
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,10 +39,12 @@ class TaskAdapter(private val context: Context, private var taskList: ArrayList<
         taskText.text = taskItem.taskName
         checkBox.isChecked = taskItem.isCompleted
 
-        // Change task text color if completed
+        // Apply strikethrough if task is completed
         if (taskItem.isCompleted) {
+            taskText.paintFlags = taskText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             taskText.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
         } else {
+            taskText.paintFlags = taskText.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
             taskText.setTextColor(ContextCompat.getColor(context, android.R.color.black))
         }
 
