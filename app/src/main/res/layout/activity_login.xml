@@ -7,32 +7,81 @@
     android:gravity="center"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/username"
+    <!-- ScrollView ensures layout remains scrollable on smaller screens -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Username"
-        android:inputType="textPersonName"
-        android:padding="18dp"
-        android:background="@drawable/edit_text_background"/>
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Password"
-        android:inputType="textPassword"
-        android:padding="18dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/edit_text_background"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
 
-    <Button
-        android:id="@+id/login_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Login"
-        android:textSize="25sp"
-        android:padding="20dp"
-        android:layout_marginTop="20dp"/>
+            <ImageView
+                android:id="@+id/logo_image"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_gravity="center"
+                android:src="@drawable/company_placeholder_icon"
+                android:layout_marginBottom="24dp"/>
 
+            <TextView
+                android:id="@+id/login_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome Back!"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"
+                android:layout_gravity="center"/>
+
+            <!-- Username Field -->
+            <EditText
+                android:id="@+id/username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                android:inputType="textPersonName"
+                android:padding="18dp"
+                android:layout_marginTop="32dp"
+            android:background="@drawable/edit_text_background"/>
+
+            <!-- Password Field -->
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:padding="18dp"
+                android:layout_marginTop="24dp"
+            android:background="@drawable/edit_text_background"/>
+
+            <!-- Login Button -->
+            <Button
+                android:id="@+id/login_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Login"
+                android:textSize="25sp"
+                android:padding="20dp"
+                android:layout_marginTop="32dp"/>
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Sign up text at the bottom -->
+    <TextView
+        android:id="@+id/signup_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't have an account? Sign up!"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_gravity="center_horizontal"
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"/>
 </LinearLayout>
