@@ -23,6 +23,12 @@ class TaskView : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_taskview)
 
+        // Handle the back button to return to the previous activity (Dashboard)
+        val backButton: Button = findViewById(R.id.back_to_MainActivity)
+        backButton.setOnClickListener {
+            finish() // Close the current activity and return to Dashboard
+        }
+
         // Initialize views
         taskRecyclerView = findViewById(R.id.todo_list_view)
         inputTask = findViewById(R.id.input_task)
@@ -85,6 +91,8 @@ class TaskView : AppCompatActivity() {
         val regex = Regex("^[a-zA-Z0-9\\s.,!?'-]*$")
         return regex.matches(taskName)
     }
+
+
 
     // Function to sanitize input
     private fun sanitizeInput(input: String): String {
