@@ -1,75 +1,71 @@
 package com.example.cateredtoyou
 
 import android.content.Context
-import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.CheckBox
+import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
+import android.widget.Filter
+import android.widget.Filterable
 
-class TaskAdapter(private val context: Context, private var taskList: ArrayList<TaskItem>) : BaseAdapter(), Filterable {
+class TaskAdapter(private val context: Context, private var taskList: ArrayList<TaskItem>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>(), Filterable {
 
-    private var filteredTaskList: ArrayList<TaskItem> = taskList
+    private var filteredTaskList: ArrayList<TaskItem> = taskList // Copy of task list for filtering
 
-    override fun getCount(): Int {
-        return filteredTaskList.size
-    }
-
-    override fun getItem(position: Int): Any {
-        return filteredTaskList[position]
-    }
-
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val view: View = convertView ?: LayoutInflater.from(context).inflate(R.layout.activity_task_item, parent, false)
-
-        // Get views from the task_item.xml layout
-        val checkBox: CheckBox = view.findViewById(R.id.task_checkbox)
+    // ViewHolder class to hold views for each task item
+    inner class TaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val taskText: TextView = view.findViewById(R.id.task_text)
-        val deleteButton: ImageButton = view.findViewById(R.id.delete_button)
+        val checkBox: CheckBox = view.findViewById(R.id.task_checkbox)
+    }
 
-        // Get the task for the current position
-        val taskItem = filteredTaskList[position]
+    // Create and return a new ViewHolder
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.activity_task_item, parent, false)
+        return TaskViewHolder(view)
+    }
 
-        // Set task name and checkbox state
-        taskText.text = taskItem.taskName
-        checkBox.isChecked = taskItem.isCompleted
+    // Bind data to the ViewHolder
+    override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
+        val taskItem = filteredTaskList[position] // Use filtered list
+
+        // Set task name
+        holder.taskText.text = taskItem.taskName
+
+        // Reset the listener to prevent unwanted triggers
+        holder.checkBox.setOnCheckedChangeListener(null)
+        holder.checkBox.isChecked = taskItem.isCompleted
 
         // Apply strikethrough if task is completed
         if (taskItem.isCompleted) {
-            taskText.paintFlags = taskText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            taskText.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+            holder.taskText.paintFlags = holder.taskText.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+            holder.taskText.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
         } else {
-            taskText.paintFlags = taskText.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            taskText.setTextColor(ContextCompat.getColor(context, android.R.color.black))
+            holder.taskText.paintFlags = holder.taskText.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            holder.taskText.setTextColor(ContextCompat.getColor(context, android.R.color.black))
         }
 
-        // Handle checkbox change
-        checkBox.setOnCheckedChangeListener { _, isChecked ->
+        // Set listener for checkbox after resetting
+        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
             taskItem.isCompleted = isChecked
-            notifyDataSetChanged()  // Refresh the list to reflect completion status
+            notifyItemChanged(position) // Refresh only this item instead of the whole dataset
         }
-
-        // Handle delete button click
-        deleteButton.setOnClickListener {
-            taskList.remove(taskItem)
-            notifyDataSetChanged()  // Refresh the list after deletion
-        }
-
-        return view
     }
 
-    // Filtering logic for the SearchView
+    // Return the number of items in the filtered list
+    override fun getItemCount(): Int {
+        return filteredTaskList.size
+    }
+
+    // Implement the filter logic for the SearchView
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val charString = constraint?.toString() ?: ""
                 filteredTaskList = if (charString.isEmpty()) {
-                    taskList
+                    taskList // No filtering, show the full list
                 } else {
                     val filteredList = ArrayList<TaskItem>()
                     for (task in taskList) {
@@ -86,7 +82,7 @@ class TaskAdapter(private val context: Context, private var taskList: ArrayList<
 
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 filteredTaskList = results?.values as ArrayList<TaskItem>
-                notifyDataSetChanged()  // Refresh the list after filtering
+                notifyDataSetChanged() // Refresh RecyclerView with filtered tasks
             }
         }
     }

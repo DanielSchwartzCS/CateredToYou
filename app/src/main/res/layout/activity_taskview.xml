@@ -12,21 +12,14 @@
         android:layout_height="wrap_content"
         android:queryHint="Search tasks" />
 
-    <!-- Input field for task -->
-
-    <!-- Add task button -->
-
-    <!-- Task List View -->
-
-    <!-- Back button -->
-
-    <ListView
+    <!-- Task List View (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/todo_list_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:dividerHeight="1dp" />
+        android:layout_weight="1" />
 
+    <!-- Input field for task -->
     <EditText
         android:id="@+id/input_task"
         android:layout_width="match_parent"
@@ -35,6 +28,7 @@
         android:hint="Enter task"
         android:inputType="text" />
 
+    <!-- Add task button -->
     <Button
         android:id="@+id/add_task_button"
         android:layout_width="wrap_content"
@@ -42,6 +36,7 @@
         android:layout_marginTop="8dp"
         android:text="Add Task" />
 
+    <!-- Back button -->
     <Button
         android:id="@+id/back_to_MainActivity"
         android:layout_width="wrap_content"
