@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.SearchView
+import android.widget.Toast
 
 class TaskView : AppCompatActivity() {
 
@@ -15,7 +16,7 @@ class TaskView : AppCompatActivity() {
     private lateinit var adapter: TaskAdapter
     private lateinit var inputTask: EditText
     private lateinit var addTaskButton: Button
-    private lateinit var searchView: SearchView // Add reference for SearchView
+    private lateinit var searchView: SearchView
     private val taskList = ArrayList<TaskItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +27,7 @@ class TaskView : AppCompatActivity() {
         taskRecyclerView = findViewById(R.id.todo_list_view)
         inputTask = findViewById(R.id.input_task)
         addTaskButton = findViewById(R.id.add_task_button)
-        searchView = findViewById(R.id.search_view) // Find the SearchView by its ID
+        searchView = findViewById(R.id.search_view)
 
         // Initialize RecyclerView and Adapter
         adapter = TaskAdapter(this, taskList)
@@ -35,13 +36,16 @@ class TaskView : AppCompatActivity() {
 
         // Add Task Button click listener
         addTaskButton.setOnClickListener {
-            val taskName = inputTask.text.toString()
-            if (taskName.isNotEmpty()) {
-                taskList.add(TaskItem(taskName, false))
+            val taskName = inputTask.text.toString().trim() // Remove leading and trailing whitespace
+
+            // Validate and sanitize the task name
+            if (taskName.isNotEmpty() && isValidTaskName(taskName)) {
+                val sanitizedTaskName = sanitizeInput(taskName)
+                taskList.add(TaskItem(sanitizedTaskName, false)) // Add sanitized task
                 adapter.notifyDataSetChanged()
-                inputTask.text.clear()
+                inputTask.text.clear() // Clear input field after adding the task
             } else {
-                inputTask.error = "Task name cannot be empty"
+                inputTask.error = "Invalid task name. Please use only letters, numbers, and basic punctuation."
             }
         }
 
@@ -73,14 +77,22 @@ class TaskView : AppCompatActivity() {
         // Attach the ItemTouchHelper to RecyclerView
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(taskRecyclerView)
+    }
 
+    // Function to validate the task name
+    private fun isValidTaskName(taskName: String): Boolean {
+        // Only allow letters, numbers, spaces, and common punctuation marks
+        val regex = Regex("^[a-zA-Z0-9\\s.,!?'-]*$")
+        return regex.matches(taskName)
+    }
 
-
-        // Handle the back button to return to the previous activity (Dashboard)
-        val backButton: Button = findViewById(R.id.back_to_MainActivity)
-        backButton.setOnClickListener {
-            finish() // Close the current activity and return to Dashboard
-        }
+    // Function to sanitize input
+    private fun sanitizeInput(input: String): String {
+        return input
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#x27;")
     }
 }
-
