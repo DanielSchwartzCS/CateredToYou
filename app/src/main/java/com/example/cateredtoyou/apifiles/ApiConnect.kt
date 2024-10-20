@@ -45,6 +45,14 @@ interface ApiConnect {
     @GET("get_users.php")
     fun getUsers(): Call<List<User>>
 
+    @POST("add_client.php")
+    fun addClient(
+        @Field("firstname") firstname: String,
+        @Field("lastname") lastname: String,
+        @Field("email") email : String,
+        @Field("phonenumber") phonenumber : String
+    ): Call<AddClientResponse>
+
     @GET("get_clients.php")
     fun getClient(): Call<List<Client>>
 }
@@ -74,6 +82,11 @@ data class LoginResponse(
     val message: String
 )
 
+data class AddClientResponse(
+    val status: Boolean,
+    val message: String
+)
+
 fun clientCall(
     onSuccess: (List<Client>) -> Unit,
     onFailure: (Throwable) -> Unit = {t -> Log.e("ApiConnect", "Failed to connect", t)}
@@ -92,4 +105,36 @@ fun clientCall(
             onFailure(t)
         }
     })
+}
+fun addClient(
+    firstname: String,
+    lastname: String,
+    email: String,
+    phonenumber: String,
+    onSuccess: (AddClientResponse) -> Unit,
+    onPartialSuccess: (AddClientResponse) -> Unit,
+    onFailure: (Throwable) -> Unit
+){
+    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse>{
+        override fun onResponse(
+            call: Call<AddClientResponse>,
+            response: Response<AddClientResponse>
+        ) {
+            if(response.isSuccessful){
+                val rawResponse = response.body()
+                if (rawResponse != null && rawResponse.status) {
+                    onSuccess(rawResponse)
+                }else if(rawResponse != null){
+                    onPartialSuccess(rawResponse)
+                }
+            }else{
+                onFailure(Throwable("Failed to add client: ${response.message()}"))
+            }
+        }
+
+        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
+            onFailure(t)
+        }
+    })
+
 }

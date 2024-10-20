@@ -1,12 +1,14 @@
 package com.example.cateredtoyou
 
 import android.os.Bundle
+import android.provider.ContactsContract.CommonDataKinds.Email
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cateredtoyou.apifiles.DatabaseApi
 import com.example.cateredtoyou.apifiles.User
+import com.example.cateredtoyou.apifiles.addClient
 import com.example.cateredtoyou.apifiles.clientCall
 import retrofit2.Call
 import retrofit2.Callback
@@ -22,6 +24,7 @@ class EventsActivity : AppCompatActivity() {
     private lateinit var eventEndTimeInput: EditText
     private lateinit var eventLocationInput: EditText
     private lateinit var clientSpinner: Spinner
+    private lateinit var newClientButton: Button
     private lateinit var expectedGuestsInput: EditText
     private lateinit var statusSpinner: Spinner
     private lateinit var selectStaffButton: Button
@@ -29,6 +32,10 @@ class EventsActivity : AppCompatActivity() {
     private lateinit var equipmentListView: ListView
     private lateinit var addEventButton: Button
     private lateinit var eventsList: ListView
+    private lateinit var firstname: EditText
+    private lateinit var lastname: EditText
+    private lateinit var email: EditText
+    private lateinit var phonenumber: EditText
 
     private lateinit var events: ArrayList<Event>
     private lateinit var adapter: ArrayAdapter<Event>
@@ -62,6 +69,7 @@ class EventsActivity : AppCompatActivity() {
         eventEndTimeInput = findViewById(R.id.event_end_time_input)
         eventLocationInput = findViewById(R.id.event_location_input)
         clientSpinner = findViewById(R.id.client_spinner)
+        newClientButton = findViewById(R.id.create_new_client_button)
         expectedGuestsInput = findViewById(R.id.expected_guests_input)
         statusSpinner = findViewById(R.id.status_spinner)
         selectStaffButton = findViewById(R.id.select_staff_button)
@@ -134,6 +142,10 @@ class EventsActivity : AppCompatActivity() {
             }
         }
 
+        newClientButton.setOnClickListener{
+            addNewClient()
+        }
+
         selectStaffButton.setOnClickListener {
             showStaffSelectionDialog()
         }
@@ -177,6 +189,33 @@ class EventsActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
         clearInputs()
         Toast.makeText(this, "Event added", Toast.LENGTH_SHORT).show()
+    }
+
+
+    private fun addNewClient(){
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+
+        builder.setView(inflater.inflate(R.layout.activity_addclient, null))
+            .setPositiveButton("Add"){_, _ ->
+                firstname = findViewById(R.id.first_name)
+                lastname = findViewById(R.id.last_name)
+                email = findViewById(R.id.email)
+                phonenumber = findViewById(R.id.phone_number)
+                addClient(
+                    firstname = firstname.text.toString(),
+                    lastname = lastname.text.toString(),
+                    email = email.text.toString(),
+                    phonenumber = phonenumber.text.toString(),
+                    onSuccess = {response -> Toast.makeText(this, response.message, Toast.LENGTH_SHORT).show()},
+                    onPartialSuccess = {response -> Toast.makeText(this, response.message, Toast.LENGTH_SHORT).show()},
+                    onFailure = {Log.e("EventActivity", "Failed to add client");
+                        Toast.makeText(this, "Operation Failed", Toast.LENGTH_SHORT).show()})
+                setupDummyData()
+            }
+            .setNegativeButton("Cancel", null)
+        val dialog = builder.create()
+        dialog.show()
     }
 
     private fun showStaffSelectionDialog() {
