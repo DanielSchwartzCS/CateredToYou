@@ -9,8 +9,11 @@
         <!-- Secondary brand color (White) -->
         <item name="colorSecondary">@color/secondaryColor</item>
         <item name="colorOnSecondary">@color/colorOnSecondary</item> <!-- Black text on White -->
+
+        <!-- Global checkmark and button tint styles -->
+        <item name="android:checkMarkTint">@color/colorOnPrimary</item> <!-- For CheckedTextView and ListView -->
+        <item name="android:buttonTint">@color/colorOnPrimary</item> <!-- For CheckBox -->
     </style>
 
     <style name="Theme.CateredToYou" parent="Base.Theme.CateredToYou" />
 </resources>
-
