@@ -20,10 +20,10 @@ class EventsView : AppCompatActivity() {
 
         // Placeholder data for events
         val events = listOf(
-            "Event: Wedding Catering\nGuests: 100\nMenu: Chicken, Beef, Salad\nDate: Dec 12",
-            "Event: Corporate Event\nGuests: 150\nMenu: Steak, Fish, Salad\nDate: Dec 15",
-            "Event: Birthday Party\nGuests: 50\nMenu: Pizza, Pasta, Cake\nDate: Dec 20",
-            "Event: Holiday Party\nGuests: 200\nMenu: Turkey, Ham, Vegetables\nDate: Dec 25"
+            "Event: Wedding Catering\nGuests: 100\nDate: Dec 12",
+            "Event: Corporate Event\nGuests: 150\nDate: Dec 15",
+            "Event: Birthday Party\nGuests: 50\nDate: Dec 20",
+            "Event: Holiday Party\nGuests: 200\nDate: Dec 25"
         )
 
         // Custom ArrayAdapter to use the event_item layout
