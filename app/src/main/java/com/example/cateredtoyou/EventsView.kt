@@ -10,7 +10,6 @@ class EventsView : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Reference the correct layout file
         setContentView(R.layout.activity_eventsview)
 
         // Handle the back button to return to the previous activity (Dashboard)
@@ -19,17 +18,17 @@ class EventsView : AppCompatActivity() {
             finish() // Close the current activity and return to Dashboard
         }
 
-        // Dummy event data (this would eventually come from a database)
+        // Placeholder data for events
         val events = listOf(
-            "Wedding Catering - 12th Dec",
-            "Corporate Event - 15th Dec",
-            "Birthday Party - 20th Dec",
-            "Holiday Party - 25th Dec"
+            "Event: Wedding Catering\nGuests: 100\nMenu: Chicken, Beef, Salad\nDate: Dec 12",
+            "Event: Corporate Event\nGuests: 150\nMenu: Steak, Fish, Salad\nDate: Dec 15",
+            "Event: Birthday Party\nGuests: 50\nMenu: Pizza, Pasta, Cake\nDate: Dec 20",
+            "Event: Holiday Party\nGuests: 200\nMenu: Turkey, Ham, Vegetables\nDate: Dec 25"
         )
 
-        // Find the ListView and set up the adapter to display the events
+        // Custom ArrayAdapter to use the event_item layout
         val eventsListView: ListView = findViewById(R.id.events_list_view)
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, events)
+        val adapter = ArrayAdapter(this, R.layout.event_item, R.id.event_details, events)
         eventsListView.adapter = adapter
     }
 }
