@@ -10,15 +10,18 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.cateredtoyou.apifiles.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
 class EventsView : AppCompatActivity() {
     private lateinit var eventsListView: ListView
     private lateinit var progressBar: ProgressBar
     private lateinit var emptyView: TextView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private var events = mutableListOf<EventData>()
 
     companion object {
@@ -35,17 +38,12 @@ class EventsView : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        try {
-            eventsListView = findViewById(R.id.events_list_view)
-            progressBar = findViewById(R.id.progress_bar)
-            emptyView = findViewById(R.id.empty_view)
+        eventsListView = findViewById(R.id.events_list_view)
+        progressBar = findViewById(R.id.progress_bar)
+        emptyView = findViewById(R.id.empty_view)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
 
-            findViewById<Button>(R.id.back_to_MainActivity).setOnClickListener {
-                finish()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error initializing views", e)
-            Toast.makeText(this, "Error initializing app", Toast.LENGTH_LONG).show()
+        findViewById<ImageButton>(R.id.back_to_MainActivity).setOnClickListener {
             finish()
         }
     }
@@ -54,6 +52,10 @@ class EventsView : AppCompatActivity() {
         eventsListView.setOnItemClickListener { _, _, position, _ ->
             val event = events[position]
             showEventDetails(event)
+        }
+
+        swipeRefresh.setOnRefreshListener {
+            loadEvents()
         }
     }
 
@@ -96,18 +98,14 @@ class EventsView : AppCompatActivity() {
 
         if (events.isEmpty()) {
             showEmptyState()
-            return
+        } else {
+            eventsListView.isVisible = true
+            emptyView.isVisible = false
+            eventsListView.adapter = EventAdapter(this, events)
         }
-
-        eventsListView.isVisible = true
-        emptyView.isVisible = false
-
-        val adapter = EventAdapter(this, events)
-        eventsListView.adapter = adapter
     }
 
     private fun showEventDetails(event: EventData) {
-        // Show a dialog with event details
         val message = """
             Event: ${event.name}
             Date: ${event.event_date}
@@ -128,6 +126,7 @@ class EventsView : AppCompatActivity() {
     private fun showLoading(show: Boolean) {
         progressBar.isVisible = show
         eventsListView.isVisible = !show
+        swipeRefresh.isRefreshing = show
     }
 
     private fun showError(message: String) {
@@ -149,13 +148,10 @@ class EventsView : AppCompatActivity() {
             val view = convertView ?: LayoutInflater.from(context)
                 .inflate(R.layout.event_item, parent, false)
 
-            val event = getItem(position) ?: return view
-
-            try {
+            val event = getItem(position)
+            if (event != null) {
                 bindEventData(view, event)
                 setupEventItemBackground(view, position)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error binding view for event: ${event.id}", e)
             }
 
             return view
@@ -179,7 +175,6 @@ class EventsView : AppCompatActivity() {
         }
 
         private fun setupEventItemBackground(view: View, position: Int) {
-            // Alternate background colors for better readability
             view.setBackgroundColor(
                 ContextCompat.getColor(
                     context,
@@ -190,11 +185,11 @@ class EventsView : AppCompatActivity() {
 
         private fun getStatusBackground(status: String): Int {
             return when (status.lowercase()) {
-                "pending" -> R.color.status_pending
-                "confirmed" -> R.color.status_confirmed
-                "completed" -> R.color.status_completed
-                "canceled" -> R.color.status_canceled
-                else -> R.color.status_pending
+                "pending" -> R.drawable.status_pending_background
+                "confirmed" -> R.drawable.status_confirmed_background
+                "completed" -> R.drawable.status_completed_background
+                "canceled" -> R.drawable.status_canceled_background
+                else -> R.drawable.status_pending_background
             }
         }
     }

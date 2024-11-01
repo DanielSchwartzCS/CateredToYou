@@ -48,12 +48,14 @@
             android:name=".RecipeActivity"
             android:exported="false" />
 
-        <activity
-            android:name=".EventsView"
-            android:exported="false" />
+
 
         <activity
             android:name=".TaskView"
             android:exported="false" />
+        <activity
+            android:name=".EventsView"
+            android:label="Events"
+            android:parentActivityName=".MainActivity" />
     </application>
 </manifest>
