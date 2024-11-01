@@ -46,29 +46,64 @@ class LoginScreen : AppCompatActivity() {
         signupTextView.movementMethod = LinkMovementMethod.getInstance()
 
         loginButton.setOnClickListener {
-            // turn the input into strings
+            // Debug log
+            Log.d("LoginScreen", "Login button clicked")
+
             val username = usernameEditText.text.toString()
             val password = passwordEditText.text.toString()
 
-            // connecting to the api using functions created in ApiConnect.kt
-            val call = DatabaseApi.retrofitService.loginCheck(username, password)
-            call.enqueue(object : Callback<LoginResponse> {
-                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>){
-                    if(response.isSuccessful) {
-                        val rawResponse = response.body()
-                        val message = rawResponse?.message
-                        if (rawResponse?.status == true) {
+            // Input validation
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this@LoginScreen, "Please enter both username and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Debug log
+            Log.d("LoginScreen", "Attempting login with username: $username")
+
+            DatabaseApi.retrofitService.loginCheck(username, password).enqueue(object : Callback<LoginResponse> {
+                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                    Log.d("LoginScreen", "Response received - Code: ${response.code()}")
+                    Log.d("LoginScreen", "Response headers: ${response.headers()}")
+
+                    if (response.isSuccessful) {
+                        val loginResponse = response.body()
+                        Log.d("LoginScreen", "Response body: $loginResponse")
+
+                        if (loginResponse?.status == true) {
+                            Log.d("LoginScreen", "Login successful, navigating to MainActivity")
                             val intent = Intent(this@LoginScreen, MainActivity::class.java)
                             startActivity(intent)
                             finish()
                         } else {
-                            Toast.makeText(this@LoginScreen, message, Toast.LENGTH_SHORT).show()
+                            val message = loginResponse?.message ?: "Login failed"
+                            Log.d("LoginScreen", "Login failed: $message")
+                            runOnUiThread {
+                                Toast.makeText(this@LoginScreen, message, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("LoginScreen", "Login failed with error: $errorBody")
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@LoginScreen,
+                                "Login failed: ${response.message()}",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
                 }
 
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    Log.e("LoginScreen", "Failed to authorize user", t)
+                    Log.e("LoginScreen", "Network error during login", t)
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@LoginScreen,
+                            "Network error: ${t.localizedMessage}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             })
         }

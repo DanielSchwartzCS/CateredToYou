@@ -5,4 +5,8 @@
     <color name="secondaryColor">#FFFFFF</color> <!-- White for secondary -->
     <color name="colorOnPrimary">#000000</color> <!-- Black text on orange background -->
     <color name="colorOnSecondary">#000000</color> <!-- Black text on white background -->
+    <color name="status_pending">#FFA000</color>
+    <color name="status_confirmed">#4CAF50</color>
+    <color name="status_completed">#2196F3</color>
+    <color name="status_canceled">#F44336</color>
 </resources>

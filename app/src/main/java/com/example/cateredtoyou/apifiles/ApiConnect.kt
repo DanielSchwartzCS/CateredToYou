@@ -14,7 +14,7 @@ import retrofit2.http.POST
 
 
 // Url for the AWS web server
-private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/"
+private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/CateredToYou/"
 
 // Lots of functions to connect to an api that returns a json file
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
@@ -55,6 +55,24 @@ interface ApiConnect {
 
     @GET("get_clients.php")
     fun getClient(): Call<List<Client>>
+
+    @FormUrlEncoded
+    @POST("add_event.php")
+    fun addEvent(
+        @Field("name") name: String,
+        @Field("event_date") eventDate: String,
+        @Field("event_start_time") startTime: String,
+        @Field("event_end_time") endTime: String,
+        @Field("location") location: String,
+        @Field("status") status: String,
+        @Field("number_of_guests") numberOfGuests: Int,
+        @Field("client_id") clientId: Int,
+        @Field("employee_id") employeeId: Int,
+        @Field("additional_info") additionalInfo: String
+    ): Call<EventResponse>
+
+    @GET("get_events.php")
+    fun getEvents(): Call<EventsResponse>
 }
 
 // the connection object
@@ -74,6 +92,7 @@ data class AddUserResponse(
 data class User(
     val id: Int,
     val username: String,
+    val role: String?,
     val pass: String
 )
 
@@ -138,3 +157,36 @@ fun addClient(
     })
 
 }
+
+data class EventResponse(
+    val status: Boolean,
+    val message: String,
+    val event_id: Int? = null
+)
+
+data class EventsResponse(
+    val status: Boolean,
+    val events: List<EventData>? = null,
+    val message: String? = null
+)
+
+data class EventData(
+    val id: Int,
+    val name: String,
+    val event_date: String,
+    val event_start_time: String,
+    val event_end_time: String,
+    val location: String,
+    val status: String,
+    val number_of_guests: Int,
+    val client: ClientData,
+    val additional_info: String?
+)
+
+data class ClientData(
+    val id: Int,
+    val firstname: String,
+    val lastname: String,
+    val email: String,
+    val phonenumber: String
+)

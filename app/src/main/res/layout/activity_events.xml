@@ -40,7 +40,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Event Date (DD/MM/YYYY)"
-            android:inputType="date"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
             android:layout_marginBottom="22dp" />
 
         <EditText
@@ -48,7 +50,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Start Time (HH:MM)"
-            android:inputType="time"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
             android:layout_marginBottom="12dp" />
 
         <EditText
@@ -56,7 +60,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="End Time (HH:MM)"
-            android:inputType="time"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
             android:layout_marginBottom="22dp" />
 
         <EditText
@@ -161,11 +167,6 @@
             android:layout_height="wrap_content"
             android:text="Add Event"
             android:layout_marginBottom="22dp" />
-
-        <ListView
-            android:id="@+id/events_list"
-            android:layout_width="match_parent"
-            android:layout_height="200dp" />
 
     </LinearLayout>
 </ScrollView>

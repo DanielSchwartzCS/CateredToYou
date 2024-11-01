@@ -1,15 +1,20 @@
 package com.example.cateredtoyou
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
-import android.provider.ContactsContract.CommonDataKinds.Email
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.util.Patterns
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.example.cateredtoyou.apifiles.DatabaseApi
-import com.example.cateredtoyou.apifiles.User
-import com.example.cateredtoyou.apifiles.addClient
-import com.example.cateredtoyou.apifiles.clientCall
+import androidx.core.view.isVisible
+import com.example.cateredtoyou.apifiles.*
+
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -17,234 +22,374 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class EventsActivity : AppCompatActivity() {
-
     private lateinit var eventNameInput: EditText
     private lateinit var eventDateInput: EditText
     private lateinit var eventStartTimeInput: EditText
     private lateinit var eventEndTimeInput: EditText
     private lateinit var eventLocationInput: EditText
     private lateinit var clientSpinner: Spinner
-    private lateinit var newClientButton: Button
     private lateinit var expectedGuestsInput: EditText
     private lateinit var statusSpinner: Spinner
+    private lateinit var addEventButton: Button
+    private lateinit var newClientButton: Button
     private lateinit var selectStaffButton: Button
     private lateinit var menuItemListView: ListView
     private lateinit var equipmentListView: ListView
-    private lateinit var addEventButton: Button
-    private lateinit var eventsList: ListView
-    private lateinit var firstname: EditText
-    private lateinit var lastname: EditText
-    private lateinit var email: EditText
-    private lateinit var phonenumber: EditText
 
-    private lateinit var events: ArrayList<Event>
-    private lateinit var adapter: ArrayAdapter<Event>
+    private var clients = listOf<Client>()
 
-    private lateinit var clients: List<Client>
-    private lateinit var staffList: List<Staff>
-    private lateinit var menuItems: List<MenuItem>
-    private lateinit var equipmentList: List<Equipment>
-
-    private val selectedStaff = mutableListOf<Staff>()
-    private val selectedMenuItems = mutableListOf<MenuItem>()
-    private val selectedEquipment = mutableListOf<Equipment>()
+    companion object {
+        private const val TAG = "EventsActivity"
+        private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        private val timeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        private val displayFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_events)
 
-        clients = emptyList()
-
-        initializeViews()
-        setupDummyData()
-        setupListViews()
-        setupEventsList()
-        setupListeners()
+        try {
+            initializeViews()
+            setupSpinners()
+            setupDateTimePickers()
+            setupListeners()
+            loadClients()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during initialization", e)
+            Toast.makeText(this, "Error initializing app", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
 
     private fun initializeViews() {
-        eventNameInput = findViewById(R.id.event_name_input)
-        eventDateInput = findViewById(R.id.event_date_input)
-        eventStartTimeInput = findViewById(R.id.event_start_time_input)
-        eventEndTimeInput = findViewById(R.id.event_end_time_input)
-        eventLocationInput = findViewById(R.id.event_location_input)
-        clientSpinner = findViewById(R.id.client_spinner)
-        newClientButton = findViewById(R.id.create_new_client_button)
-        expectedGuestsInput = findViewById(R.id.expected_guests_input)
-        statusSpinner = findViewById(R.id.status_spinner)
-        selectStaffButton = findViewById(R.id.select_staff_button)
-        menuItemListView = findViewById(R.id.menu_item_list)
-        equipmentListView = findViewById(R.id.equipment_list)
-        addEventButton = findViewById(R.id.add_event_button)
-        eventsList = findViewById(R.id.events_list)
+        try {
+            eventNameInput = findViewById<EditText>(R.id.event_name_input)
+            eventDateInput = findViewById<EditText>(R.id.event_date_input)
+            eventStartTimeInput = findViewById<EditText>(R.id.event_start_time_input)
+            eventEndTimeInput = findViewById<EditText>(R.id.event_end_time_input)
+            eventLocationInput = findViewById<EditText>(R.id.event_location_input)
+            clientSpinner = findViewById<Spinner>(R.id.client_spinner)
+            expectedGuestsInput = findViewById<EditText>(R.id.expected_guests_input)
+            statusSpinner = findViewById<Spinner>(R.id.status_spinner)
+            selectStaffButton = findViewById<Button>(R.id.select_staff_button)
+            menuItemListView = findViewById<ListView>(R.id.menu_item_list)
+            equipmentListView = findViewById<ListView>(R.id.equipment_list)
+            addEventButton = findViewById<Button>(R.id.add_event_button)
+            newClientButton = findViewById<Button>(R.id.create_new_client_button)
 
-        val backButton: Button = findViewById(R.id.back_to_MainActivity)
-        backButton.setOnClickListener { finish() }
-    }
-
-    private fun setupDummyData() {
-        clientCall(onSuccess = {response -> clients = response; setupSpinners()},
-            onFailure = { Log.e("EventsActivity","Failed to connect");
-                Toast.makeText(this, "Couldn't connect to client list", Toast.LENGTH_SHORT).show()})
-
-//        clients = listOf(
-//            Client(1, "John Doe", "123-456-7890", "john@example.com", "123 Main St"),
-//            Client(2, "Jane Smith", "987-654-3210", "jane@example.com", "456 Elm St")
-//        )
-        staffList = listOf(
-            Staff(1, "Alice", "Chef"),
-            Staff(2, "Bob", "Waiter"),
-            Staff(3, "Charlie", "Bartender")
-        )
-        menuItems = listOf(
-            MenuItem(1, "Chicken Parmesan", "Breaded chicken with marinara sauce", 15.99, "Main Course"),
-            MenuItem(2, "Caesar Salad", "Romaine lettuce with caesar dressing", 8.99, "Appetizer")
-        )
-        equipmentList = listOf(
-            Equipment(1, "Tables", 10),
-            Equipment(2, "Chairs", 50),
-            Equipment(3, "Plates", 100)
-        )
+            findViewById<Button>(R.id.back_to_MainActivity).setOnClickListener { finish() }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing views", e)
+            throw e
+        }
     }
 
     private fun setupSpinners() {
-        ArrayAdapter(this, android.R.layout.simple_spinner_item, clients).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            clientSpinner.adapter = adapter
-        }
-
-        ArrayAdapter(this, android.R.layout.simple_spinner_item, Event.EventStatus.values()).also { adapter ->
+        ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            listOf("pending", "confirmed", "completed", "canceled")
+        ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             statusSpinner.adapter = adapter
         }
     }
 
-    private fun setupListViews() {
-        val menuItemAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, menuItems)
-        menuItemListView.adapter = menuItemAdapter
-        menuItemListView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
+    private fun setupDateTimePickers() {
+        eventDateInput.apply {
+            isFocusable = false
+            isClickable = true
+            setOnClickListener { showDatePickerDialog() }
+        }
 
-        val equipmentAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, equipmentList)
-        equipmentListView.adapter = equipmentAdapter
-        equipmentListView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
-    }
+        eventStartTimeInput.apply {
+            isFocusable = false
+            isClickable = true
+            setOnClickListener { showTimePickerDialog(this) }
+        }
 
-    private fun setupEventsList() {
-        events = ArrayList()
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, events)
-        eventsList.adapter = adapter
+        eventEndTimeInput.apply {
+            isFocusable = false
+            isClickable = true
+            setOnClickListener { showTimePickerDialog(this) }
+        }
     }
 
     private fun setupListeners() {
         addEventButton.setOnClickListener {
-            if (validateInputs()) {
-                addEvent()
-            }
+            if (validateInputs()) addEvent()
         }
 
-        newClientButton.setOnClickListener{
-            addNewClient()
+        newClientButton.setOnClickListener {
+            showAddClientDialog()
         }
 
         selectStaffButton.setOnClickListener {
-            showStaffSelectionDialog()
-        }
-
-        eventsList.setOnItemLongClickListener { _, _, position, _ ->
-            showEventOptions(position)
-            true
+            // TODO: Implement staff selection
+            showError("Staff selection not yet implemented")
         }
     }
 
+    private fun loadClients() {
+        clientCall(
+            onSuccess = { clientList ->
+                clients = clientList
+                updateClientSpinner()
+            },
+            onFailure = {
+                Log.e(TAG, "Failed to load clients", it)
+                showError("Failed to load clients")
+            }
+        )
+    }
+
+    private fun updateClientSpinner() {
+        ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            clients
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            clientSpinner.adapter = adapter
+        }
+    }
+
+    private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                calendar.set(year, month, day)
+                eventDateInput.setText(displayFormatter.format(calendar.time))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun showTimePickerDialog(timeInput: EditText) {
+        val calendar = Calendar.getInstance()
+        TimePickerDialog(
+            this,
+            { _, hour, minute ->
+                timeInput.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute))
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
+        ).show()
+    }
+
     private fun validateInputs(): Boolean {
-        // Implement input validation logic
+        when {
+            eventNameInput.text.isNullOrBlank() -> {
+                showError("Event name is required")
+                return false
+            }
+            eventDateInput.text.isNullOrBlank() -> {
+                showError("Event date is required")
+                return false
+            }
+            eventStartTimeInput.text.isNullOrBlank() -> {
+                showError("Start time is required")
+                return false
+            }
+            eventEndTimeInput.text.isNullOrBlank() -> {
+                showError("End time is required")
+                return false
+            }
+            eventLocationInput.text.isNullOrBlank() -> {
+                showError("Location is required")
+                return false
+            }
+            expectedGuestsInput.text.isNullOrBlank() -> {
+                showError("Number of guests is required")
+                return false
+            }
+            clients.isEmpty() -> {
+                showError("Please add a client first")
+                return false
+            }
+        }
         return true
     }
 
     private fun addEvent() {
-        val name = eventNameInput.text.toString()
-        val date = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(eventDateInput.text.toString())!!
-        val startTime = eventStartTimeInput.text.toString()
-        val endTime = eventEndTimeInput.text.toString()
-        val location = eventLocationInput.text.toString()
-        val status = statusSpinner.selectedItem as Event.EventStatus
-        val client = clientSpinner.selectedItem as Client
-        val expectedGuests = expectedGuestsInput.text.toString().toInt()
+        try {
+            if (clientSpinner.selectedItem == null) {
+                showError("Please select a client")
+                return
+            }
 
-        val newEvent = Event(
-            name = name,
-            date = date,
-            startTime = startTime,
-            endTime = endTime,
-            location = location,
-            status = status,
-            client = client,
-            expectedGuests = expectedGuests,
-            menu = selectedMenuItems,
-            staffAssigned = selectedStaff,
-            equipmentNeeded = selectedEquipment
-        )
+            // Get users first
+            DatabaseApi.retrofitService.getUsers().enqueue(object : Callback<List<User>> {
+                override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+                    if (response.isSuccessful) {
+                        val users = response.body()
+                        if (users.isNullOrEmpty()) {
+                            showError("No users available")
+                            return
+                        }
 
-        events.add(newEvent)
-        adapter.notifyDataSetChanged()
-        clearInputs()
-        Toast.makeText(this, "Event added", Toast.LENGTH_SHORT).show()
+                        // Get the admin user (you can modify this logic based on your needs)
+                        val adminUser = users.find { it.role == "caterer" }
+                        if (adminUser == null) {
+                            showError("No admin user found")
+                            return
+                        }
+
+                        Log.d(TAG, "Found admin user with ID: ${adminUser.id}")
+                        createEventWithEmployee(adminUser.id)
+                    } else {
+                        showError("Failed to get users")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                    Log.e(TAG, "Failed to get users", t)
+                    showError("Network error while getting users")
+                }
+            })
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in addEvent", e)
+            showError("Error: ${e.localizedMessage}")
+        }
     }
 
+    private fun createEventWithEmployee(employeeId: Int) {
+        try {
+            val client = clientSpinner.selectedItem as Client
+            val dateStr = try {
+                val date = displayFormatter.parse(eventDateInput.text.toString())
+                dateFormatter.format(date!!)
+            } catch (e: Exception) {
+                showError("Invalid date format")
+                return
+            }
 
-    private fun addNewClient(){
-        val builder = AlertDialog.Builder(this)
-        val inflater = layoutInflater
+            // Format times with seconds
+            val startTime = "${eventStartTimeInput.text.toString()}:00"
+            val endTime = "${eventEndTimeInput.text.toString()}:00"
 
-        builder.setView(inflater.inflate(R.layout.activity_addclient, null))
-            .setPositiveButton("Add"){_, _ ->
-                firstname = findViewById(R.id.first_name)
-                lastname = findViewById(R.id.last_name)
-                email = findViewById(R.id.email)
-                phonenumber = findViewById(R.id.phone_number)
-                addClient(
-                    firstname = firstname.text.toString(),
-                    lastname = lastname.text.toString(),
-                    email = email.text.toString(),
-                    phonenumber = phonenumber.text.toString(),
-                    onSuccess = {response -> Toast.makeText(this, response.message, Toast.LENGTH_SHORT).show()},
-                    onPartialSuccess = {response -> Toast.makeText(this, response.message, Toast.LENGTH_SHORT).show()},
-                    onFailure = {Log.e("EventActivity", "Failed to add client");
-                        Toast.makeText(this, "Operation Failed", Toast.LENGTH_SHORT).show()})
-                setupDummyData()
+            Log.d(TAG, "Creating event with employee ID: $employeeId")
+
+            DatabaseApi.retrofitService.addEvent(
+                name = eventNameInput.text.toString().trim(),
+                eventDate = dateStr,
+                startTime = startTime,
+                endTime = endTime,
+                location = eventLocationInput.text.toString().trim(),
+                status = statusSpinner.selectedItem.toString(),
+                numberOfGuests = expectedGuestsInput.text.toString().toInt(),
+                clientId = client.id,
+                employeeId = employeeId,
+                additionalInfo = ""
+            ).enqueue(object : Callback<EventResponse> {
+                override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
+                    if (!response.isSuccessful) {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e(TAG, "Server error: $errorBody")
+                        showError("Server error: ${response.code()}")
+                        return
+                    }
+
+                    val eventResponse = response.body()
+                    if (eventResponse?.status == true) {
+                        showSuccess("Event added successfully")
+                        clearInputs()
+                    } else {
+                        showError(eventResponse?.message ?: "Failed to add event")
+                    }
+                }
+
+                override fun onFailure(call: Call<EventResponse>, t: Throwable) {
+                    Log.e(TAG, "Network error", t)
+                    showError("Network error: ${t.localizedMessage}")
+                }
+            })
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in createEventWithEmployee", e)
+            showError("Error: ${e.localizedMessage}")
+        }
+    }
+
+    private fun showAddClientDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.activity_addclient, null)
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Add") { dialog, _ ->
+                val firstname = dialogView.findViewById<EditText>(R.id.first_name).text.toString()
+                val lastname = dialogView.findViewById<EditText>(R.id.last_name).text.toString()
+                val email = dialogView.findViewById<EditText>(R.id.email).text.toString()
+                val phone = dialogView.findViewById<EditText>(R.id.phone_number).text.toString()
+
+                if (validateClientInputs(firstname, lastname, email, phone)) {
+                    addClient(firstname, lastname, email, phone)
+                }
+                dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
-        val dialog = builder.create()
-        dialog.show()
+            .show()
     }
 
-    private fun showStaffSelectionDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Select Staff")
-
-        val staffItems = staffList.map { it.toString() }.toTypedArray()
-        val checkedItems = BooleanArray(staffList.size) { selectedStaff.contains(staffList[it]) }
-
-        builder.setMultiChoiceItems(staffItems, checkedItems) { _, which, isChecked ->
-            if (isChecked) {
-                selectedStaff.add(staffList[which])
-            } else {
-                selectedStaff.remove(staffList[which])
+    private fun validateClientInputs(
+        firstname: String,
+        lastname: String,
+        email: String,
+        phone: String
+    ): Boolean {
+        when {
+            firstname.isBlank() -> {
+                showError("First name is required")
+                return false
+            }
+            lastname.isBlank() -> {
+                showError("Last name is required")
+                return false
+            }
+            email.isBlank() -> {
+                showError("Email is required")
+                return false
+            }
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                showError("Invalid email format")
+                return false
+            }
+            phone.isBlank() -> {
+                showError("Phone number is required")
+                return false
             }
         }
-
-        builder.setPositiveButton("OK") { _, _ ->
-            updateStaffSelectionButton()
-        }
-
-        builder.setNegativeButton("Cancel", null)
-
-        val dialog = builder.create()
-        dialog.show()
+        return true
     }
 
-    private fun updateStaffSelectionButton() {
-        selectStaffButton.text = "Selected Staff: ${selectedStaff.size}"
+    private fun addClient(
+        firstname: String,
+        lastname: String,
+        email: String,
+        phone: String
+    ) {
+        addClient(
+            firstname = firstname,
+            lastname = lastname,
+            email = email,
+            phonenumber = phone,
+            onSuccess = { response ->
+                showSuccess(response.message)
+                loadClients()
+            },
+            onPartialSuccess = { response ->
+                showError(response.message)
+            },
+            onFailure = {
+                Log.e(TAG, "Failed to add client", it)
+                showError("Failed to add client")
+            }
+        )
     }
 
     private fun clearInputs() {
@@ -254,41 +399,17 @@ class EventsActivity : AppCompatActivity() {
         eventEndTimeInput.text.clear()
         eventLocationInput.text.clear()
         expectedGuestsInput.text.clear()
-        clientSpinner.setSelection(0)
         statusSpinner.setSelection(0)
-        selectedStaff.clear()
-        updateStaffSelectionButton()
-        selectedMenuItems.clear()
-        selectedEquipment.clear()
-        for (i in 0 until menuItemListView.count) {
-            menuItemListView.setItemChecked(i, false)
-        }
-        for (i in 0 until equipmentListView.count) {
-            equipmentListView.setItemChecked(i, false)
+        if (clients.isNotEmpty()) {
+            clientSpinner.setSelection(0)
         }
     }
 
-    private fun showEventOptions(position: Int) {
-        val options = arrayOf("Edit", "Delete")
-        AlertDialog.Builder(this)
-            .setTitle("Event Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> editEvent(position)
-                    1 -> deleteEvent(position)
-                }
-            }
-            .show()
+    private fun showError(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    private fun editEvent(position: Int) {
-        // Implement edit functionality
-        Toast.makeText(this, "Edit functionality to be implemented", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun deleteEvent(position: Int) {
-        events.removeAt(position)
-        adapter.notifyDataSetChanged()
-        Toast.makeText(this, "Event deleted", Toast.LENGTH_SHORT).show()
+    private fun showSuccess(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
