@@ -1,0 +1,15 @@
+{
+    "name": "danielschwartz/cateredtoyou",
+    "description": "catered to you app",
+    "type": "project",
+    "require": {
+        "firebase/php-jwt": "^6.10"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "catered to you team"
+        }
+    ],
+    "minimum-stability": "stable"
+}
