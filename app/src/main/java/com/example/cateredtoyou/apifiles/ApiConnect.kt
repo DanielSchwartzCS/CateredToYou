@@ -2,6 +2,9 @@ package com.example.cateredtoyou.apifiles
 
 import android.util.Log
 import com.example.cateredtoyou.Client
+import com.google.gson.annotations.SerializedName
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -14,7 +17,7 @@ import retrofit2.http.POST
 
 
 // Url for the AWS web server
-private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/CateredToYou/"
+private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/php/"
 
 // Lots of functions to connect to an api that returns a json file
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
@@ -24,7 +27,6 @@ private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFacto
 // interface for all of the functions that call the API
 interface ApiConnect {
     @FormUrlEncoded
-
     @POST("login.php")
     fun loginCheck(
         @Field("username") username: String,
@@ -33,7 +35,7 @@ interface ApiConnect {
     ): Call<LoginResponse>
 
 
-
+    @FormUrlEncoded
     @POST("add_user.php")
     fun addUser(
         @Field("username") username: String,
@@ -42,9 +44,11 @@ interface ApiConnect {
     ): Call<AddUserResponse>
 
 
+
     @GET("get_users.php")
     fun getUsers(): Call<List<User>>
 
+    @FormUrlEncoded
     @POST("add_client.php")
     fun addClient(
         @Field("firstname") firstname: String,
@@ -73,15 +77,41 @@ interface ApiConnect {
 
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
+
+    @GET("get_inventory.php")
+    fun getInventory(): Call<List<InventoryItem>>
+
+    @FormUrlEncoded
+    @POST("add_event_inventory.php")
+    fun addEventInventory(
+        @Field("event_id") eventId: Int,
+        @Field("inventory_items") inventoryItems: String
+    ): Call<BaseResponse>
+
+
+
+
 }
 
 // the connection object
-object DatabaseApi{
-    val retrofitService : ApiConnect by lazy {
-        retrofit.create(ApiConnect::class.java)
+object DatabaseApi {
+    val retrofitService: ApiConnect by lazy {
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        val client = OkHttpClient.Builder()
+            .addInterceptor(logging)
+            .build()
+
+        Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .client(client)
+            .build()
+            .create(ApiConnect::class.java)
     }
 }
-
 // Data classes for the different responses based on the call
 
 data class AddUserResponse(
@@ -189,4 +219,25 @@ data class ClientData(
     val lastname: String,
     val email: String,
     val phonenumber: String
+)
+
+data class InventoryItem(
+    @SerializedName("id") val id: Int,
+    @SerializedName("item_name") val itemName: String,
+    @SerializedName("quantity") val quantity: Int,
+    @SerializedName("category") val category: String,
+    @SerializedName("unit_of_measurement") val unitOfMeasurement: String?,
+    @SerializedName("cost_per_unit") val costPerUnit: Double?,
+    @SerializedName("minimum_stock") val minimumStock: Int?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("last_restocked") val lastRestocked: String?,
+    @SerializedName("updated_at") val updatedAt: String?
+) {
+    override fun toString(): String = itemName
+}
+
+
+data class BaseResponse(
+    val status: Boolean,
+    val message: String
 )

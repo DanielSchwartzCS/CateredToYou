@@ -3,7 +3,6 @@ package com.example.cateredtoyou
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.util.Patterns
@@ -11,17 +10,18 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import com.example.cateredtoyou.apifiles.*
-
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import org.json.JSONArray
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.logging.Handler
 
 class EventsActivity : AppCompatActivity() {
+    // UI Components
     private lateinit var eventNameInput: EditText
     private lateinit var eventDateInput: EditText
     private lateinit var eventStartTimeInput: EditText
@@ -35,14 +35,19 @@ class EventsActivity : AppCompatActivity() {
     private lateinit var selectStaffButton: Button
     private lateinit var menuItemListView: ListView
     private lateinit var equipmentListView: ListView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var backButton: Button
 
+    // Data holders
     private var clients = listOf<Client>()
+    private lateinit var menuItemsAdapter: InventoryAdapter
+    private lateinit var equipmentAdapter: InventoryAdapter
 
     companion object {
         private const val TAG = "EventsActivity"
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        private val timeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         private val displayFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,39 +58,37 @@ class EventsActivity : AppCompatActivity() {
             initializeViews()
             setupSpinners()
             setupDateTimePickers()
+            setupAdapters()
             setupListeners()
-            loadClients()
+            loadInitialData()
         } catch (e: Exception) {
             Log.e(TAG, "Error during initialization", e)
-            Toast.makeText(this, "Error initializing app", Toast.LENGTH_LONG).show()
+            showError("Failed to initialize: ${e.localizedMessage}")
             finish()
         }
     }
 
     private fun initializeViews() {
-        try {
-            eventNameInput = findViewById<EditText>(R.id.event_name_input)
-            eventDateInput = findViewById<EditText>(R.id.event_date_input)
-            eventStartTimeInput = findViewById<EditText>(R.id.event_start_time_input)
-            eventEndTimeInput = findViewById<EditText>(R.id.event_end_time_input)
-            eventLocationInput = findViewById<EditText>(R.id.event_location_input)
-            clientSpinner = findViewById<Spinner>(R.id.client_spinner)
-            expectedGuestsInput = findViewById<EditText>(R.id.expected_guests_input)
-            statusSpinner = findViewById<Spinner>(R.id.status_spinner)
-            selectStaffButton = findViewById<Button>(R.id.select_staff_button)
-            menuItemListView = findViewById<ListView>(R.id.menu_item_list)
-            equipmentListView = findViewById<ListView>(R.id.equipment_list)
-            addEventButton = findViewById<Button>(R.id.add_event_button)
-            newClientButton = findViewById<Button>(R.id.create_new_client_button)
-
-            findViewById<Button>(R.id.back_to_MainActivity).setOnClickListener { finish() }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error initializing views", e)
-            throw e
-        }
+        // Initialize all view references
+        eventNameInput = findViewById(R.id.event_name_input)
+        eventDateInput = findViewById(R.id.event_date_input)
+        eventStartTimeInput = findViewById(R.id.event_start_time_input)
+        eventEndTimeInput = findViewById(R.id.event_end_time_input)
+        eventLocationInput = findViewById(R.id.event_location_input)
+        clientSpinner = findViewById(R.id.client_spinner)
+        expectedGuestsInput = findViewById(R.id.expected_guests_input)
+        statusSpinner = findViewById(R.id.status_spinner)
+        addEventButton = findViewById(R.id.add_event_button)
+        newClientButton = findViewById(R.id.create_new_client_button)
+        selectStaffButton = findViewById(R.id.select_staff_button)
+        menuItemListView = findViewById(R.id.menu_item_list)
+        equipmentListView = findViewById(R.id.equipment_list)
+        progressBar = findViewById(R.id.progress_bar)
+        backButton = findViewById(R.id.back_to_MainActivity)
     }
 
     private fun setupSpinners() {
+        // Setup status spinner
         ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
@@ -94,6 +97,9 @@ class EventsActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             statusSpinner.adapter = adapter
         }
+
+        // Initialize empty client spinner
+        updateClientSpinner()
     }
 
     private fun setupDateTimePickers() {
@@ -116,9 +122,28 @@ class EventsActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupAdapters() {
+        menuItemsAdapter = InventoryAdapter(
+            this,
+            mutableListOf()
+        ) { _, _ -> updateAddEventButtonState() }
+        equipmentAdapter = InventoryAdapter(
+            this,
+            mutableListOf()
+        ) { _, _ -> updateAddEventButtonState() }
+
+        menuItemListView.adapter = menuItemsAdapter
+        equipmentListView.adapter = equipmentAdapter
+    }
+
     private fun setupListeners() {
+        backButton.setOnClickListener { finish() }
+
         addEventButton.setOnClickListener {
-            if (validateInputs()) addEvent()
+            if (validateInputs()) {
+                showProgressBar()
+                addEvent()
+            }
         }
 
         newClientButton.setOnClickListener {
@@ -127,7 +152,73 @@ class EventsActivity : AppCompatActivity() {
 
         selectStaffButton.setOnClickListener {
             // TODO: Implement staff selection
-            showError("Staff selection not yet implemented")
+            Toast.makeText(this, "Staff selection coming soon", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadInitialData() {
+        showProgressBar()
+        loadClients()
+        loadInventory()
+    }
+
+    private fun loadInventory() {
+        Log.d(TAG, "Starting inventory load")
+        showProgressBar()
+
+        DatabaseApi.retrofitService.getInventory().enqueue(object : Callback<List<InventoryItem>> {
+            override fun onResponse(
+                call: Call<List<InventoryItem>>,
+                response: Response<List<InventoryItem>>
+            ) {
+                if (response.isSuccessful) {
+                    val items = response.body()
+                    if (items != null) {
+                        Log.d(TAG, "Successfully loaded ${items.size} inventory items")
+                        updateInventoryLists(items)
+                    } else {
+                        Log.e(TAG, "Inventory response body was null")
+                        showError("Failed to load inventory items - empty response")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Failed to load inventory: $errorBody")
+                    showError("Server error: ${response.code()} - ${response.message()}")
+                }
+                hideProgressBar()
+            }
+
+            override fun onFailure(call: Call<List<InventoryItem>>, t: Throwable) {
+                Log.e(TAG, "Error loading inventory", t)
+                showError("Network error while loading inventory: ${t.localizedMessage}")
+                hideProgressBar()
+            }
+        })
+    }
+
+    private fun updateInventoryLists(items: List<InventoryItem>) {
+        try {
+            Log.d(TAG, "Categorizing inventory items")
+
+            val foodItems = items.filter { item ->
+                item.category?.equals("Food", ignoreCase = true) == true ||
+                        item.category?.equals("Beverage", ignoreCase = true) == true
+            }.also { Log.d(TAG, "Found ${it.size} food/beverage items") }
+
+            val equipmentItems = items.filter { item ->
+                item.category?.equals("Equipment", ignoreCase = true) == true ||
+                        item.category?.equals("Utensil", ignoreCase = true) == true ||
+                        item.category?.equals("Decoration", ignoreCase = true) == true
+            }.also { Log.d(TAG, "Found ${it.size} equipment items") }
+
+            runOnUiThread {
+                menuItemsAdapter.updateItems(foodItems)
+                equipmentAdapter.updateItems(equipmentItems)
+                Log.d(TAG, "Updated adapters with inventory items")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating inventory lists", e)
+            showError("Error processing inventory data: ${e.localizedMessage}")
         }
     }
 
@@ -136,10 +227,12 @@ class EventsActivity : AppCompatActivity() {
             onSuccess = { clientList ->
                 clients = clientList
                 updateClientSpinner()
+                hideProgressBar()
             },
-            onFailure = {
-                Log.e(TAG, "Failed to load clients", it)
+            onFailure = { error ->
+                Log.e(TAG, "Failed to load clients", error)
                 showError("Failed to load clients")
+                hideProgressBar()
             }
         )
     }
@@ -152,6 +245,10 @@ class EventsActivity : AppCompatActivity() {
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             clientSpinner.adapter = adapter
+            // Select the last added client if this update was triggered by adding a new client
+            if (clients.isNotEmpty()) {
+                selectLatestClient()
+            }
         }
     }
 
@@ -174,7 +271,9 @@ class EventsActivity : AppCompatActivity() {
         TimePickerDialog(
             this,
             { _, hour, minute ->
-                timeInput.setText(String.format(Locale.getDefault(), "%02d:%02d", hour, minute))
+                calendar.set(Calendar.HOUR_OF_DAY, hour)
+                calendar.set(Calendar.MINUTE, minute)
+                timeInput.setText(timeFormatter.format(calendar.time))
             },
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),
@@ -208,8 +307,13 @@ class EventsActivity : AppCompatActivity() {
                 showError("Number of guests is required")
                 return false
             }
-            clients.isEmpty() -> {
-                showError("Please add a client first")
+            clientSpinner.selectedItem == null -> {
+                showError("Please select a client")
+                return false
+            }
+            menuItemsAdapter.getSelectedItems().isEmpty() &&
+                    equipmentAdapter.getSelectedItems().isEmpty() -> {
+                showError("Please select at least one menu item or equipment")
                 return false
             }
         }
@@ -218,12 +322,7 @@ class EventsActivity : AppCompatActivity() {
 
     private fun addEvent() {
         try {
-            if (clientSpinner.selectedItem == null) {
-                showError("Please select a client")
-                return
-            }
-
-            // Get users first
+            // First get an admin user for the event
             DatabaseApi.retrofitService.getUsers().enqueue(object : Callback<List<User>> {
                 override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                     if (response.isSuccessful) {
@@ -233,29 +332,29 @@ class EventsActivity : AppCompatActivity() {
                             return
                         }
 
-                        // Get the admin user (you can modify this logic based on your needs)
                         val adminUser = users.find { it.role == "caterer" }
                         if (adminUser == null) {
                             showError("No admin user found")
                             return
                         }
 
-                        Log.d(TAG, "Found admin user with ID: ${adminUser.id}")
                         createEventWithEmployee(adminUser.id)
                     } else {
                         showError("Failed to get users")
+                        hideProgressBar()
                     }
                 }
 
                 override fun onFailure(call: Call<List<User>>, t: Throwable) {
                     Log.e(TAG, "Failed to get users", t)
                     showError("Network error while getting users")
+                    hideProgressBar()
                 }
             })
-
         } catch (e: Exception) {
             Log.e(TAG, "Error in addEvent", e)
             showError("Error: ${e.localizedMessage}")
+            hideProgressBar()
         }
     }
 
@@ -270,11 +369,8 @@ class EventsActivity : AppCompatActivity() {
                 return
             }
 
-            // Format times with seconds
-            val startTime = "${eventStartTimeInput.text.toString()}:00"
-            val endTime = "${eventEndTimeInput.text.toString()}:00"
-
-            Log.d(TAG, "Creating event with employee ID: $employeeId")
+            val startTime = "${eventStartTimeInput.text}:00"
+            val endTime = "${eventEndTimeInput.text}:00"
 
             DatabaseApi.retrofitService.addEvent(
                 name = eventNameInput.text.toString().trim(),
@@ -286,34 +382,65 @@ class EventsActivity : AppCompatActivity() {
                 numberOfGuests = expectedGuestsInput.text.toString().toInt(),
                 clientId = client.id,
                 employeeId = employeeId,
-                additionalInfo = ""
+                additionalInfo = "Event created with selections"
             ).enqueue(object : Callback<EventResponse> {
                 override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
-                    if (!response.isSuccessful) {
-                        val errorBody = response.errorBody()?.string()
-                        Log.e(TAG, "Server error: $errorBody")
-                        showError("Server error: ${response.code()}")
-                        return
-                    }
-
-                    val eventResponse = response.body()
-                    if (eventResponse?.status == true) {
-                        showSuccess("Event added successfully")
-                        clearInputs()
+                    if (response.isSuccessful && response.body()?.status == true) {
+                        val eventId = response.body()?.event_id
+                        if (eventId != null) {
+                            createEventWithInventory(eventId)
+                        } else {
+                            showError("Failed to get event ID")
+                            hideProgressBar()
+                        }
                     } else {
-                        showError(eventResponse?.message ?: "Failed to add event")
+                        showError("Failed to create event")
+                        hideProgressBar()
                     }
                 }
 
                 override fun onFailure(call: Call<EventResponse>, t: Throwable) {
                     Log.e(TAG, "Network error", t)
                     showError("Network error: ${t.localizedMessage}")
+                    hideProgressBar()
                 }
             })
         } catch (e: Exception) {
             Log.e(TAG, "Error in createEventWithEmployee", e)
             showError("Error: ${e.localizedMessage}")
+            hideProgressBar()
         }
+    }
+
+    private fun createEventWithInventory(eventId: Int) {
+        val inventoryJson = JSONArray().apply {
+            val allItems = menuItemsAdapter.getSelectedItems() + equipmentAdapter.getSelectedItems()
+            allItems.forEach { (item, quantity) ->
+                put(JSONObject().apply {
+                    put("inventory_id", item.id)
+                    put("quantity", quantity)
+                })
+            }
+        }.toString()
+
+        DatabaseApi.retrofitService.addEventInventory(eventId, inventoryJson)
+            .enqueue(object : Callback<BaseResponse> {
+                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                    if (response.isSuccessful && response.body()?.status == true) {
+                        showSuccess("Event created successfully")
+                        clearInputs()
+                    } else {
+                        showError("Failed to save inventory items")
+                    }
+                    hideProgressBar()
+                }
+
+                override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+                    Log.e(TAG, "Network error while saving inventory", t)
+                    showError("Network error while saving inventory items")
+                    hideProgressBar()
+                }
+            })
     }
 
     private fun showAddClientDialog() {
@@ -328,6 +455,7 @@ class EventsActivity : AppCompatActivity() {
                 val phone = dialogView.findViewById<EditText>(R.id.phone_number).text.toString()
 
                 if (validateClientInputs(firstname, lastname, email, phone)) {
+                    showProgressBar()
                     addClient(firstname, lastname, email, phone)
                 }
                 dialog.dismiss()
@@ -363,8 +491,19 @@ class EventsActivity : AppCompatActivity() {
                 showError("Phone number is required")
                 return false
             }
+            !phone.replace(Regex("[()\\s-]"), "").matches(Regex("^\\d{7,15}$")) -> {
+                showError("Phone number must contain 7-15 digits")
+                return false
+            }
         }
         return true
+    }
+
+    private fun selectLatestClient() {
+        if (clients.isNotEmpty()) {
+            val position = clientSpinner.adapter?.count?.minus(1) ?: 0
+            clientSpinner.setSelection(position)
+        }
     }
 
     private fun addClient(
@@ -381,16 +520,23 @@ class EventsActivity : AppCompatActivity() {
             onSuccess = { response ->
                 showSuccess(response.message)
                 loadClients()
+                // Add a small delay to ensure the spinner is updated before selecting
+                android.os.Handler(Looper.getMainLooper()).postDelayed({
+                    selectLatestClient()
+                }, 300)
             },
             onPartialSuccess = { response ->
                 showError(response.message)
+                hideProgressBar()
             },
-            onFailure = {
-                Log.e(TAG, "Failed to add client", it)
-                showError("Failed to add client")
+            onFailure = { error ->
+                Log.e(TAG, "Failed to add client", error)
+                showError("Failed to add client: ${error.localizedMessage}")
+                hideProgressBar()
             }
         )
     }
+
 
     private fun clearInputs() {
         eventNameInput.text.clear()
@@ -400,16 +546,93 @@ class EventsActivity : AppCompatActivity() {
         eventLocationInput.text.clear()
         expectedGuestsInput.text.clear()
         statusSpinner.setSelection(0)
+
+        // Reset inventory selections
+        menuItemsAdapter.clearSelections()
+        equipmentAdapter.clearSelections()
+
+        // Reset client spinner if there are clients
         if (clients.isNotEmpty()) {
             clientSpinner.setSelection(0)
         }
+
+        updateAddEventButtonState()
+    }
+
+    private fun updateAddEventButtonState() {
+        val hasMenuItems = menuItemsAdapter.getSelectedItems().isNotEmpty()
+        val hasEquipment = equipmentAdapter.getSelectedItems().isNotEmpty()
+        addEventButton.isEnabled = hasMenuItems || hasEquipment
+    }
+
+    private fun showProgressBar() {
+        progressBar.visibility = View.VISIBLE
+        addEventButton.isEnabled = false
+        newClientButton.isEnabled = false
+    }
+
+    private fun hideProgressBar() {
+        progressBar.visibility = View.GONE
+        addEventButton.isEnabled = true
+        newClientButton.isEnabled = true
+        updateAddEventButtonState()
     }
 
     private fun showError(message: String) {
+        hideProgressBar()
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     private fun showSuccess(message: String) {
+        hideProgressBar()
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cancel any pending network requests if needed
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save current input states
+        outState.apply {
+            putString("eventName", eventNameInput.text.toString())
+            putString("eventDate", eventDateInput.text.toString())
+            putString("startTime", eventStartTimeInput.text.toString())
+            putString("endTime", eventEndTimeInput.text.toString())
+            putString("location", eventLocationInput.text.toString())
+            putString("guests", expectedGuestsInput.text.toString())
+            putInt("statusPosition", statusSpinner.selectedItemPosition)
+            putInt("clientPosition", clientSpinner.selectedItemPosition)
+        }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        // Restore saved states
+        savedInstanceState.apply {
+            eventNameInput.setText(getString("eventName", ""))
+            eventDateInput.setText(getString("eventDate", ""))
+            eventStartTimeInput.setText(getString("startTime", ""))
+            eventEndTimeInput.setText(getString("endTime", ""))
+            eventLocationInput.setText(getString("location", ""))
+            expectedGuestsInput.setText(getString("guests", ""))
+
+            // Restore spinner selections if they have adapters
+            statusSpinner.adapter?.let {
+                val statusPos = getInt("statusPosition", 0)
+                if (statusPos < it.count) {
+                    statusSpinner.setSelection(statusPos)
+                }
+            }
+
+            clientSpinner.adapter?.let {
+                val clientPos = getInt("clientPosition", 0)
+                if (clientPos < it.count) {
+                    clientSpinner.setSelection(clientPos)
+                }
+            }
+        }
     }
 }
