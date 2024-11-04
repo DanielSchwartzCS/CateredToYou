@@ -18,7 +18,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.logging.Handler
 
 class EventsActivity : AppCompatActivity() {
     // UI Components
@@ -40,6 +39,7 @@ class EventsActivity : AppCompatActivity() {
 
     // Data holders
     private var clients = listOf<Client>()
+    private var employees = listOf<User>()
     private lateinit var menuItemsAdapter: InventoryAdapter
     private lateinit var equipmentAdapter: InventoryAdapter
 
@@ -89,10 +89,10 @@ class EventsActivity : AppCompatActivity() {
 
     private fun setupSpinners() {
         // Setup status spinner
-        ArrayAdapter(
+        ArrayAdapter.createFromResource(
             this,
-            android.R.layout.simple_spinner_item,
-            listOf("pending", "confirmed", "completed", "canceled")
+            R.array.event_statuses,
+            android.R.layout.simple_spinner_item
         ).also { adapter ->
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             statusSpinner.adapter = adapter
@@ -159,6 +159,7 @@ class EventsActivity : AppCompatActivity() {
     private fun loadInitialData() {
         showProgressBar()
         loadClients()
+        loadEmployees()
         loadInventory()
     }
 
@@ -198,23 +199,37 @@ class EventsActivity : AppCompatActivity() {
 
     private fun updateInventoryLists(items: List<InventoryItem>) {
         try {
-            Log.d(TAG, "Categorizing inventory items")
+            Log.d(TAG, "Received ${items.size} total inventory items")
 
-            val foodItems = items.filter { item ->
-                item.category?.equals("Food", ignoreCase = true) == true ||
-                        item.category?.equals("Beverage", ignoreCase = true) == true
-            }.also { Log.d(TAG, "Found ${it.size} food/beverage items") }
+            // Food and Beverage items
+            val menuItems = items.filter { item ->
+                item.category.equals("Food", ignoreCase = true) ||
+                        item.category.equals("Beverage", ignoreCase = true)
+            }
+            Log.d(TAG, "Found ${menuItems.size} menu items: ${menuItems.map { it.itemName }}")
 
+            // Equipment, Utensil, and Decoration items
             val equipmentItems = items.filter { item ->
-                item.category?.equals("Equipment", ignoreCase = true) == true ||
-                        item.category?.equals("Utensil", ignoreCase = true) == true ||
-                        item.category?.equals("Decoration", ignoreCase = true) == true
-            }.also { Log.d(TAG, "Found ${it.size} equipment items") }
+                item.category.equals("Equipment", ignoreCase = true) ||
+                        item.category.equals("Utensil", ignoreCase = true) ||
+                        item.category.equals("Decoration", ignoreCase = true)
+            }
+            Log.d(
+                TAG,
+                "Found ${equipmentItems.size} equipment items: ${equipmentItems.map { it.itemName }}"
+            )
 
             runOnUiThread {
-                menuItemsAdapter.updateItems(foodItems)
-                equipmentAdapter.updateItems(equipmentItems)
-                Log.d(TAG, "Updated adapters with inventory items")
+                menuItemsAdapter.updateItems(menuItems.toMutableList())
+                equipmentAdapter.updateItems(equipmentItems.toMutableList())
+
+                // Make sure the ListViews update their display
+                (menuItemListView.adapter as? InventoryAdapter)?.notifyDataSetChanged()
+                (equipmentListView.adapter as? InventoryAdapter)?.notifyDataSetChanged()
+
+                // Log the adapter counts
+                Log.d(TAG, "Menu items adapter count: ${menuItemsAdapter.count}")
+                Log.d(TAG, "Equipment adapter count: ${equipmentAdapter.count}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error updating inventory lists", e)
@@ -235,6 +250,34 @@ class EventsActivity : AppCompatActivity() {
                 hideProgressBar()
             }
         )
+    }
+
+    private fun loadEmployees() {
+        DatabaseApi.retrofitService.getUser().enqueue(object : Callback<List<User>> {
+            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+                if (response.isSuccessful) {
+                    val users = response.body()
+                    if (users != null) {
+                        employees = users
+                        Log.d(TAG, "Successfully loaded ${users.size} employees")
+                    } else {
+                        Log.e(TAG, "Empty response body for employees")
+                        showError("Failed to load employees - empty response")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Failed to load employees: $errorBody")
+                    showError("Server error: ${response.code()} - ${response.message()}")
+                }
+                hideProgressBar()
+            }
+
+            override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                Log.e(TAG, "Error loading employees", t)
+                showError("Network error while loading employees: ${t.localizedMessage}")
+                hideProgressBar()
+            }
+        })
     }
 
     private fun updateClientSpinner() {
@@ -287,30 +330,37 @@ class EventsActivity : AppCompatActivity() {
                 showError("Event name is required")
                 return false
             }
+
             eventDateInput.text.isNullOrBlank() -> {
                 showError("Event date is required")
                 return false
             }
+
             eventStartTimeInput.text.isNullOrBlank() -> {
                 showError("Start time is required")
                 return false
             }
+
             eventEndTimeInput.text.isNullOrBlank() -> {
                 showError("End time is required")
                 return false
             }
+
             eventLocationInput.text.isNullOrBlank() -> {
                 showError("Location is required")
                 return false
             }
+
             expectedGuestsInput.text.isNullOrBlank() -> {
                 showError("Number of guests is required")
                 return false
             }
+
             clientSpinner.selectedItem == null -> {
                 showError("Please select a client")
                 return false
             }
+
             menuItemsAdapter.getSelectedItems().isEmpty() &&
                     equipmentAdapter.getSelectedItems().isEmpty() -> {
                 showError("Please select at least one menu item or equipment")
@@ -322,50 +372,27 @@ class EventsActivity : AppCompatActivity() {
 
     private fun addEvent() {
         try {
-            // First get an admin user for the event
-            DatabaseApi.retrofitService.getUsers().enqueue(object : Callback<List<User>> {
-                override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                    if (response.isSuccessful) {
-                        val users = response.body()
-                        if (users.isNullOrEmpty()) {
-                            showError("No users available")
-                            return
-                        }
+            val clientId = (clientSpinner.selectedItem as? Client)?.id
+            val employeeId = employees.firstOrNull()?.id
 
-                        val adminUser = users.find { it.role == "caterer" }
-                        if (adminUser == null) {
-                            showError("No admin user found")
-                            return
-                        }
+            if (clientId == null) {
+                showError("Invalid client selected")
+                hideProgressBar()
+                return
+            }
 
-                        createEventWithEmployee(adminUser.id)
-                    } else {
-                        showError("Failed to get users")
-                        hideProgressBar()
-                    }
-                }
+            if (employeeId == null) {
+                showError("No employee available")
+                hideProgressBar()
+                return
+            }
 
-                override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                    Log.e(TAG, "Failed to get users", t)
-                    showError("Network error while getting users")
-                    hideProgressBar()
-                }
-            })
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in addEvent", e)
-            showError("Error: ${e.localizedMessage}")
-            hideProgressBar()
-        }
-    }
-
-    private fun createEventWithEmployee(employeeId: Int) {
-        try {
-            val client = clientSpinner.selectedItem as Client
             val dateStr = try {
                 val date = displayFormatter.parse(eventDateInput.text.toString())
                 dateFormatter.format(date!!)
             } catch (e: Exception) {
                 showError("Invalid date format")
+                hideProgressBar()
                 return
             }
 
@@ -380,13 +407,16 @@ class EventsActivity : AppCompatActivity() {
                 location = eventLocationInput.text.toString().trim(),
                 status = statusSpinner.selectedItem.toString(),
                 numberOfGuests = expectedGuestsInput.text.toString().toInt(),
-                clientId = client.id,
+                clientId = clientId,
                 employeeId = employeeId,
                 additionalInfo = "Event created with selections"
             ).enqueue(object : Callback<EventResponse> {
-                override fun onResponse(call: Call<EventResponse>, response: Response<EventResponse>) {
+                override fun onResponse(
+                    call: Call<EventResponse>,
+                    response: Response<EventResponse>
+                ) {
                     if (response.isSuccessful && response.body()?.status == true) {
-                        val eventId = response.body()?.event_id
+                        val eventId = response.body()?.eventId
                         if (eventId != null) {
                             createEventWithInventory(eventId)
                         } else {
@@ -406,11 +436,12 @@ class EventsActivity : AppCompatActivity() {
                 }
             })
         } catch (e: Exception) {
-            Log.e(TAG, "Error in createEventWithEmployee", e)
+            Log.e(TAG, "Error in addEvent", e)
             showError("Error: ${e.localizedMessage}")
             hideProgressBar()
         }
     }
+
 
     private fun createEventWithInventory(eventId: Int) {
         val inventoryJson = JSONArray().apply {
@@ -425,7 +456,10 @@ class EventsActivity : AppCompatActivity() {
 
         DatabaseApi.retrofitService.addEventInventory(eventId, inventoryJson)
             .enqueue(object : Callback<BaseResponse> {
-                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                override fun onResponse(
+                    call: Call<BaseResponse>,
+                    response: Response<BaseResponse>
+                ) {
                     if (response.isSuccessful && response.body()?.status == true) {
                         showSuccess("Event created successfully")
                         clearInputs()
@@ -441,6 +475,7 @@ class EventsActivity : AppCompatActivity() {
                     hideProgressBar()
                 }
             })
+
     }
 
     private fun showAddClientDialog() {
@@ -475,22 +510,27 @@ class EventsActivity : AppCompatActivity() {
                 showError("First name is required")
                 return false
             }
+
             lastname.isBlank() -> {
                 showError("Last name is required")
                 return false
             }
+
             email.isBlank() -> {
                 showError("Email is required")
                 return false
             }
+
             !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                 showError("Invalid email format")
                 return false
             }
+
             phone.isBlank() -> {
                 showError("Phone number is required")
                 return false
             }
+
             !phone.replace(Regex("[()\\s-]"), "").matches(Regex("^\\d{7,15}$")) -> {
                 showError("Phone number must contain 7-15 digits")
                 return false
@@ -536,7 +576,6 @@ class EventsActivity : AppCompatActivity() {
             }
         )
     }
-
 
     private fun clearInputs() {
         eventNameInput.text.clear()

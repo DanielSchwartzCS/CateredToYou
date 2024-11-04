@@ -83,7 +83,7 @@ class UserActivity : AppCompatActivity() , View.OnClickListener{
     }
 
     private fun getUsers(){
-        DatabaseApi.retrofitService.getUsers().enqueue(object : Callback<List<User>> {
+        DatabaseApi.retrofitService.getUser().enqueue(object : Callback<List<User>> {
             override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                 if(response.isSuccessful){
                     val rawResponse = response.body()

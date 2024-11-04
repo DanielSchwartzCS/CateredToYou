@@ -1,6 +1,7 @@
 package com.example.cateredtoyou
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ class InventoryAdapter(
     fun updateItems(newItems: List<InventoryItem>) {
         items.clear()
         items.addAll(newItems)
+        Log.d("InventoryAdapter", "Updated with ${items.size} items: ${items.map { it.itemName }}")
         notifyDataSetChanged()
     }
 
@@ -28,13 +30,14 @@ class InventoryAdapter(
     }
 
     fun getSelectedItems(): Map<InventoryItem, Int> {
-        return items.filter { selectedQuantities[it.id] ?: 0 > 0 }
+        return items.filter { (selectedQuantities[it.id] ?: 0) > 0 }
             .associateWith { selectedQuantities[it.id] ?: 0 }
     }
 
     override fun getCount(): Int = items.size
     override fun getItem(position: Int): InventoryItem = items[position]
-    override fun getItemId(position: Int): Long = position.toLong()
+    override fun getItemId(position: Int): Long = items[position].id.toLong()
+    override fun hasStableIds(): Boolean = true
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?: LayoutInflater.from(context)
@@ -42,28 +45,18 @@ class InventoryAdapter(
 
         val item = getItem(position)
 
-        // Main item name and category
+        // Log item being displayed
+        Log.d("InventoryAdapter", "Displaying item at position $position: ${item.itemName}")
+
         view.findViewById<TextView>(R.id.itemName).apply {
             text = "${item.itemName} (${item.category})"
         }
 
-        // Details including quantity, unit, and cost
         view.findViewById<TextView>(R.id.itemDetails).apply {
-            val cost = item.costPerUnit?.let { "@ $${String.format("%.2f", it)}/unit" } ?: ""
+            val cost = item.costPerUnit?.let { "@ $${String.format("%.2f", it)}" } ?: ""
             text = "${item.quantity} ${item.unitOfMeasurement ?: "units"} available $cost"
         }
 
-        // Notes if available
-        view.findViewById<TextView>(R.id.itemNotes).apply {
-            if (!item.notes.isNullOrBlank()) {
-                text = item.notes
-                visibility = View.VISIBLE
-            } else {
-                visibility = View.GONE
-            }
-        }
-
-        // Quantity picker
         view.findViewById<NumberPicker>(R.id.quantityPicker).apply {
             minValue = 0
             maxValue = item.quantity

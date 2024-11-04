@@ -2,6 +2,7 @@ package com.example.cateredtoyou.apifiles
 
 import android.util.Log
 import com.example.cateredtoyou.Client
+import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,6 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 
 // Url for the AWS web server
@@ -36,7 +38,7 @@ interface ApiConnect {
 
 
     @FormUrlEncoded
-    @POST("add_user.php")
+    @POST("add_employee.php")
     fun addUser(
         @Field("username") username: String,
         @Field("password") password: String
@@ -45,8 +47,8 @@ interface ApiConnect {
 
 
 
-    @GET("get_users.php")
-    fun getUsers(): Call<List<User>>
+    @GET("get_employees.php")
+    fun getUser(): Call<List<User>>
 
     @FormUrlEncoded
     @POST("add_client.php")
@@ -88,6 +90,8 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
+    @GET("get_event_inventory.php")
+    fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
 
 
 
@@ -104,8 +108,13 @@ object DatabaseApi {
             .addInterceptor(logging)
             .build()
 
+        // Create a lenient Gson instance
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+
         Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .baseUrl(BASE_URL)
             .client(client)
             .build()
@@ -191,7 +200,7 @@ fun addClient(
 data class EventResponse(
     val status: Boolean,
     val message: String,
-    val event_id: Int? = null
+    val eventId: Int? = null
 )
 
 data class EventsResponse(
@@ -203,14 +212,14 @@ data class EventsResponse(
 data class EventData(
     val id: Int,
     val name: String,
-    val event_date: String,
-    val event_start_time: String,
-    val event_end_time: String,
+    val eventDate: String,
+    val eventStartTime: String,
+    val eventEndTime: String,
     val location: String,
     val status: String,
-    val number_of_guests: Int,
+    val numberOfGuests: Int,
     val client: ClientData,
-    val additional_info: String?
+    val additionalInfo: String?
 )
 
 data class ClientData(
@@ -240,4 +249,17 @@ data class InventoryItem(
 data class BaseResponse(
     val status: Boolean,
     val message: String
+)
+
+data class EventInventoryResponse(
+    val status: Boolean,
+    val items: List<EventInventoryItem>
+)
+
+data class EventInventoryItem(
+    val id: Int,
+    val itemName: String,
+    val quantity: Int,
+    val category: String,
+    val unitOfMeasurement: String?
 )

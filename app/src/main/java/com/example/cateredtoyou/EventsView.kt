@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -106,22 +107,77 @@ class EventsView : AppCompatActivity() {
     }
 
     private fun showEventDetails(event: EventData) {
-        val message = """
-            Event: ${event.name}
-            Date: ${event.event_date}
-            Time: ${event.event_start_time} - ${event.event_end_time}
-            Location: ${event.location}
-            Guests: ${event.number_of_guests}
-            Client: ${event.client.firstname} ${event.client.lastname}
-            Status: ${event.status}
-        """.trimIndent()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_event_details, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
 
-        android.app.AlertDialog.Builder(this)
-            .setTitle("Event Details")
-            .setMessage(message)
-            .setPositiveButton("OK", null)
-            .show()
+        // Set up basic info
+        val basicInfo = """
+        Event: ${event.name}
+        Date: ${event.eventDate}
+        Time: ${event.eventStartTime} - ${event.eventEndTime}
+        Location: ${event.location}
+        Guests: ${event.numberOfGuests}
+        Client: ${event.client.firstname} ${event.client.lastname}
+        Status: ${event.status}
+    """.trimIndent()
+
+        dialogView.findViewById<TextView>(R.id.event_basic_info).text = basicInfo
+
+        // Load event inventory items
+        loadEventInventory(event.id, dialogView)
+
+        // Set up close button
+        dialogView.findViewById<Button>(R.id.close_button).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
+
+    private fun loadEventInventory(eventId: Int, dialogView: View) {
+        DatabaseApi.retrofitService.getEventInventory(eventId).enqueue(object : Callback<EventInventoryResponse> {
+            override fun onResponse(
+                call: Call<EventInventoryResponse>,
+                response: Response<EventInventoryResponse>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let { inventory ->
+                        updateEventInventoryLists(inventory, dialogView)
+                    }
+                } else {
+                    showError("Failed to load event inventory")
+                }
+            }
+
+            override fun onFailure(call: Call<EventInventoryResponse>, t: Throwable) {
+                showError("Error loading event inventory: ${t.localizedMessage}")
+            }
+        })
+    }
+    private fun updateEventInventoryLists(
+        inventory: EventInventoryResponse,
+        dialogView: View
+    ) {
+        // Split items into menu and equipment
+        val menuItems = inventory.items.filter {
+            it.category == "Food" || it.category == "Beverage"
+        }
+        val equipmentItems = inventory.items.filter {
+            it.category in listOf("Equipment", "Utensil", "Decoration")
+        }
+
+        // Update menu items list
+        val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
+        menuListView.adapter = EventInventoryAdapter(this, menuItems)
+
+        // Update equipment list
+        val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
+        equipmentListView.adapter = EventInventoryAdapter(this, equipmentItems)
+    }
+
+
 
     private fun showLoading(show: Boolean) {
         progressBar.isVisible = show
@@ -159,12 +215,12 @@ class EventsView : AppCompatActivity() {
 
         private fun bindEventData(view: View, event: EventData) {
             view.findViewById<TextView>(R.id.event_name).text = event.name
-            view.findViewById<TextView>(R.id.event_date).text = "Date: ${event.event_date}"
+            view.findViewById<TextView>(R.id.event_date).text = "Date: ${event.eventDate}"
             view.findViewById<TextView>(R.id.event_time).text =
-                "Time: ${event.event_start_time} - ${event.event_end_time}"
+                "Time: ${event.eventStartTime} - ${event.eventEndTime}"
             view.findViewById<TextView>(R.id.event_location).text = "Location: ${event.location}"
             view.findViewById<TextView>(R.id.event_guests).text =
-                "Guests: ${event.number_of_guests}"
+                "Guests: ${event.numberOfGuests}"
             view.findViewById<TextView>(R.id.client_name).text =
                 "Client: ${event.client.firstname} ${event.client.lastname}"
 
@@ -193,4 +249,25 @@ class EventsView : AppCompatActivity() {
             }
         }
     }
+    private inner class EventInventoryAdapter(
+        context: Context,
+        private val items: List<EventInventoryItem>
+    ) : ArrayAdapter<EventInventoryItem>(context, android.R.layout.simple_list_item_2, items) {
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = convertView ?: layoutInflater.inflate(
+                android.R.layout.simple_list_item_2,
+                parent,
+                false
+            )
+
+            val item = getItem(position)!!
+            view.findViewById<TextView>(android.R.id.text1).text = item.itemName
+            view.findViewById<TextView>(android.R.id.text2).text =
+                "Quantity: ${item.quantity} ${item.unitOfMeasurement ?: "units"}"
+
+            return view
+        }
+    }
+
 }
