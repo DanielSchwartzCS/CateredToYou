@@ -87,7 +87,7 @@ class UserActivity : AppCompatActivity() , View.OnClickListener{
             override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                 if(response.isSuccessful){
                     val rawResponse = response.body()
-                    resultTv.text = rawResponse?.joinToString { "\n'id': ${it.id}, 'username': ${it.username}, 'pass': ${it.pass}" }
+                    resultTv.text = rawResponse?.joinToString { "\n'id': ${it.userId}, 'username': ${it.username}, 'pass': ${it.password}" }
                 }else{
                     Log.e("UserActivity", "Response failed with code: ${response.code()}")
                 }

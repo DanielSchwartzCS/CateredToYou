@@ -77,6 +77,7 @@ interface ApiConnect {
         @Field("additional_info") additionalInfo: String
     ): Call<EventResponse>
 
+
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
 
@@ -89,6 +90,7 @@ interface ApiConnect {
         @Field("event_id") eventId: Int,
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
+
 
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
@@ -129,11 +131,19 @@ data class AddUserResponse(
 )
 
 data class User(
-    val id: Int,
+    @SerializedName("user_id") val userId: Int,
     val username: String,
-    val role: String?,
-    val pass: String
-)
+    val password: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val role: String? = null,
+    @SerializedName("first_name")
+    val firstName: String,
+    @SerializedName("last_name")
+    val lastName: String
+) {
+    override fun toString(): String = "$firstName $lastName ($role)"
+}
 
 data class LoginResponse(
     val status: Boolean,
@@ -198,9 +208,9 @@ fun addClient(
 }
 
 data class EventResponse(
-    val status: Boolean,
-    val message: String,
-    val eventId: Int? = null
+    @SerializedName("status") val status: Boolean,
+    @SerializedName("message") val message: String,
+    @SerializedName("event_id") val eventId: Int?
 )
 
 data class EventsResponse(
@@ -219,6 +229,7 @@ data class EventData(
     val status: String,
     val numberOfGuests: Int,
     val client: ClientData,
+    val employeeId: Int,
     val additionalInfo: String?
 )
 
