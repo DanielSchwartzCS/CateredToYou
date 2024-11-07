@@ -95,6 +95,12 @@ interface ApiConnect {
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
 
+    @POST("delete_event.php")
+    @FormUrlEncoded
+    fun deleteEvent(
+        @Field("event_id") eventId: Int
+    ): Call<DeleteResponse>
+
 
 
 }
@@ -264,13 +270,18 @@ data class BaseResponse(
 
 data class EventInventoryResponse(
     val status: Boolean,
-    val items: List<EventInventoryItem>
+    val message: String?,
+    val items: List<EventInventoryItem>?
 )
 
 data class EventInventoryItem(
     val id: Int,
     val itemName: String,
     val quantity: Int,
-    val category: String,
+    val category: String?,
     val unitOfMeasurement: String?
+)
+data class DeleteResponse(
+    val status: Boolean,
+    val message: String
 )

@@ -53,7 +53,7 @@
     <!-- Event details formatting -->
     <string name="event_date_time_format">%1$s %2$s - %3$s</string>
     <string name="event_confirmation_summary">Event Details:\n\nName: %1$s\nDate: %2$s\nTime: %3$s\nLocation: %4$s\nClient: %5$s\nGuests: %6$s\nMenu Items: %7$d\nEquipment: %8$d</string>
-
+    <string name="events_title">Events</string>
     <!-- Success messages -->
     <string name="event_created">Event created successfully</string>
     <string name="client_added">Client added successfully</string>

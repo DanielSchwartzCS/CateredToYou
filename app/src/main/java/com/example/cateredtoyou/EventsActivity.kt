@@ -30,7 +30,7 @@ class EventsActivity : AppCompatActivity() {
         private const val MAX_EVENT_HOURS = 12
         private const val DEFAULT_EVENT_DURATION_HOURS = 2
         private const val DATE_PICKER_YEARS_RANGE = 2
-        private const val ADMIN_USER_ID = 3  // Default admin user ID
+        private const val ADMIN_USER_ID = 1 // Default admin user ID
         private const val ADMIN_EMPLOYEE_ID = 3  // Default admin employee ID
         private const val STATE_EVENT_NAME = "event_name"
         private const val STATE_EVENT_DATE = "event_date"
@@ -191,12 +191,18 @@ class EventsActivity : AppCompatActivity() {
         menuItemsAdapter = InventoryAdapter(
             this,
             mutableListOf()
-        ) { _, _ -> updateAddEventButtonState() }
+        ) { item, quantity, _ ->  // Added _ for totalCost parameter
+            updateAddEventButtonState()
+            Log.d("EventsActivity", "Menu item ${item.itemName} quantity changed to $quantity")
+        }
 
         equipmentAdapter = InventoryAdapter(
             this,
             mutableListOf()
-        ) { _, _ -> updateAddEventButtonState() }
+        ) { item, quantity, _ ->  // Added _ for totalCost parameter
+            updateAddEventButtonState()
+            Log.d("EventsActivity", "Equipment ${item.itemName} quantity changed to $quantity")
+        }
 
         menuItemListView.adapter = menuItemsAdapter
         equipmentListView.adapter = equipmentAdapter
@@ -663,16 +669,15 @@ class EventsActivity : AppCompatActivity() {
     }
 
     private fun submitEventInventory(eventId: Int) {
-        val selectedItems = menuItemsAdapter.getSelectedItems() + equipmentAdapter.getSelectedItems()
+        val menuItems = menuItemsAdapter.getSelectedItems()
+        val equipmentItems = equipmentAdapter.getSelectedItems()
 
-        // Create inventory items array
         val inventoryJson = JSONArray().apply {
-            selectedItems.forEach { (item, quantity) ->
+            (menuItems + equipmentItems).forEach { (item, quantity) ->
                 put(JSONObject().apply {
                     put("inventory_id", item.id)
                     put("quantity", quantity)
-                    // Add any special instructions if needed
-                    put("special_instructions", "Added from event creation")
+                    put("special_instructions", "")
                 })
             }
         }.toString()
@@ -684,73 +689,88 @@ class EventsActivity : AppCompatActivity() {
             inventoryItems = inventoryJson
         ).enqueue(object : Callback<BaseResponse> {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
-                Log.d(TAG, """
-                Inventory submission response:
-                Status: ${response.isSuccessful}
-                Code: ${response.code()}
-                Body: ${response.body()}
-            """.trimIndent())
-
                 if (response.isSuccessful && response.body()?.status == true) {
                     showSuccess(getString(R.string.success))
                     clearInputs()
                 } else {
-                    val errorMessage = response.errorBody()?.string()
-                    Log.e(TAG, "Failed to save inventory: $errorMessage")
-                    showError(getString(R.string.error_server))
+                    handleErrorResponse("Failed to save inventory items", response)
                 }
                 hideProgressBar()
             }
 
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                Log.e(TAG, "Network error while saving inventory", t)
-                showError(getString(R.string.error_network))
+                handleNetworkError("Network error while saving inventory", t)
                 hideProgressBar()
             }
         })
     }
-    private fun addClient(
+
+    fun addClient(
         firstname: String,
         lastname: String,
         email: String,
-        phone: String
+        phonenumber: String,
+        onSuccess: (AddClientResponse) -> Unit,
+        onError: (String) -> Unit
     ) {
-        Log.d(TAG, "Adding new client: $firstname $lastname")
+        // Input validation
+        if (firstname.isBlank() || lastname.isBlank() ||
+            email.isBlank() || phonenumber.isBlank()) {
+            onError("All fields must not be empty")
+            return
+        }
+
+        // Sanitize inputs
+        val sanitizedPhone = phonenumber.filter { it.isDigit() }
+        if (sanitizedPhone.length < 7 || sanitizedPhone.length > 15) {
+            onError("Invalid phone number format")
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            onError("Invalid email format")
+            return
+        }
 
         DatabaseApi.retrofitService.addClient(
-            firstname = firstname,
-            lastname = lastname,
-            email = email,
-            phonenumber = phone
+            firstname = firstname.trim(),
+            lastname = lastname.trim(),
+            email = email.trim(),
+            phonenumber = sanitizedPhone
         ).enqueue(object : Callback<AddClientResponse> {
             override fun onResponse(
                 call: Call<AddClientResponse>,
                 response: Response<AddClientResponse>
             ) {
-                if (response.isSuccessful) {
-                    val rawResponse = response.body()
-                    if (rawResponse != null && rawResponse.status) {
-                        showSuccess(getString(R.string.success))
-                        loadClients()
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            selectLatestClient()
-                        }, 300)
-                    } else {
-                        val errorMessage = rawResponse?.message ?: getString(R.string.error_server)
-                        showError(errorMessage)
+                when {
+                    response.isSuccessful && response.body()?.status == true -> {
+                        onSuccess(response.body()!!)
                     }
-                } else {
-                    handleErrorResponse("Failed to add client", response)
+                    response.code() == 500 -> {
+                        // Handle 500 Internal Server Error specifically
+                        Log.e("AddClient", "Server error: ${response.errorBody()?.string()}")
+                        onError("Server error occurred. Please try again later.")
+                    }
+                    else -> {
+                        // Handle other error cases
+                        val errorMsg = try {
+                            response.errorBody()?.string() ?: "Unknown error occurred"
+                        } catch (e: Exception) {
+                            "Error processing server response"
+                        }
+                        Log.e("AddClient", "Error response: $errorMsg")
+                        onError(errorMsg)
+                    }
                 }
-                hideProgressBar()
             }
 
             override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
-                handleNetworkError("Failed to add client", t)
-                hideProgressBar()
+                Log.e("AddClient", "Network error", t)
+                onError("Network error: ${t.message ?: "Unknown error occurred"}")
             }
         })
     }
+
 
 
     private fun showAddClientDialog() {
@@ -767,13 +787,31 @@ class EventsActivity : AppCompatActivity() {
 
                 if (validateClientInputs(firstname, lastname, email, phone)) {
                     showProgressBar()
-                    addClient(firstname, lastname, email, phone)
+                    addClient(
+                        firstname = firstname,
+                        lastname = lastname,
+                        email = email,
+                        phonenumber = phone,
+                        onSuccess = { response ->
+                            hideProgressBar()
+                            showSuccess(response.message)
+                            loadClients()
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                selectLatestClient()
+                            }, 300)
+                        },
+                        onError = { errorMessage ->
+                            hideProgressBar()
+                            showError(errorMessage)
+                        }
+                    )
                 }
                 dialog.dismiss()
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
+
 
     private fun showStaffSelectionDialog() {
         // For now, just show that the admin user is assigned

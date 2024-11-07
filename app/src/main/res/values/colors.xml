@@ -9,4 +9,5 @@
     <color name="status_confirmed">#4CAF50</color>
     <color name="status_completed">#2196F3</color>
     <color name="status_canceled">#F44336</color>
+    <color name="selected_card_background">#E3F2FD</color>
 </resources>

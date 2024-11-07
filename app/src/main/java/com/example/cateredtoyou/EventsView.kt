@@ -125,7 +125,16 @@ class EventsView : AppCompatActivity() {
 
         dialogView.findViewById<TextView>(R.id.event_basic_info).text = basicInfo
 
-        // Load event inventory items
+        // Set up delete button
+        dialogView.findViewById<Button>(R.id.delete_button).setOnClickListener {
+            dialog.dismiss()
+            showDeleteConfirmation(event)
+        }
+
+        // Load event inventory items with progress indicator
+        val progressBar = dialogView.findViewById<ProgressBar>(R.id.inventory_progress)
+        progressBar.visibility = View.VISIBLE
+
         loadEventInventory(event.id, dialogView)
 
         // Set up close button
@@ -135,24 +144,82 @@ class EventsView : AppCompatActivity() {
 
         dialog.show()
     }
+    private fun showDeleteConfirmation(event: EventData) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Event")
+            .setMessage("Are you sure you want to delete '${event.name}'?")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteEvent(event)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    private fun deleteEvent(event: EventData) {
+        showLoading(true)
+
+        DatabaseApi.retrofitService.deleteEvent(event.id).enqueue(object : Callback<DeleteResponse> {
+            override fun onResponse(call: Call<DeleteResponse>, response: Response<DeleteResponse>) {
+                showLoading(false)
+                if (response.isSuccessful && response.body()?.status == true) {
+                    // Remove from list and update UI
+                    events.remove(event)
+                    if (events.isEmpty()) {
+                        showEmptyState()
+                    } else {
+                        eventsListView.adapter = EventAdapter(this@EventsView, events)
+                    }
+                    Toast.makeText(this@EventsView,
+                        response.body()?.message ?: "Event deleted successfully",
+                        Toast.LENGTH_SHORT).show()
+                } else {
+                    showError(response.body()?.message ?: "Failed to delete event")
+                }
+            }
+
+            override fun onFailure(call: Call<DeleteResponse>, t: Throwable) {
+                showLoading(false)
+                showError("Network error while deleting event: ${t.localizedMessage}")
+            }
+        })
+    }
 
     private fun loadEventInventory(eventId: Int, dialogView: View) {
+        // Show progress indicator
+        dialogView.findViewById<ProgressBar>(R.id.inventory_progress)?.visibility = View.VISIBLE
+
         DatabaseApi.retrofitService.getEventInventory(eventId).enqueue(object : Callback<EventInventoryResponse> {
             override fun onResponse(
                 call: Call<EventInventoryResponse>,
                 response: Response<EventInventoryResponse>
             ) {
-                if (response.isSuccessful) {
-                    response.body()?.let { inventory ->
-                        updateEventInventoryLists(inventory, dialogView)
-                    }
+                dialogView.findViewById<ProgressBar>(R.id.inventory_progress)?.visibility = View.GONE
+
+                if (response.isSuccessful && response.body()?.items != null) {
+                    updateEventInventoryLists(response.body()!!, dialogView)
                 } else {
-                    showError("Failed to load event inventory")
+                    // Handle error case
+                    val errorMessage = response.body()?.message ?: "Failed to load event inventory"
+                    showError(errorMessage)
+
+                    // Show empty state in lists
+                    val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
+                    val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
+
+                    menuListView.adapter = EventInventoryAdapter(this@EventsView, emptyList())
+                    equipmentListView.adapter = EventInventoryAdapter(this@EventsView, emptyList())
                 }
             }
 
             override fun onFailure(call: Call<EventInventoryResponse>, t: Throwable) {
+                dialogView.findViewById<ProgressBar>(R.id.inventory_progress)?.visibility = View.GONE
                 showError("Error loading event inventory: ${t.localizedMessage}")
+
+                // Show empty state in lists
+                val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
+                val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
+
+                menuListView.adapter = EventInventoryAdapter(this@EventsView, emptyList())
+                equipmentListView.adapter = EventInventoryAdapter(this@EventsView, emptyList())
             }
         })
     }
@@ -160,21 +227,37 @@ class EventsView : AppCompatActivity() {
         inventory: EventInventoryResponse,
         dialogView: View
     ) {
-        // Split items into menu and equipment
-        val menuItems = inventory.items.filter {
-            it.category == "Food" || it.category == "Beverage"
-        }
-        val equipmentItems = inventory.items.filter {
-            it.category in listOf("Equipment", "Utensil", "Decoration")
-        }
+        try {
+            // Safely handle potentially null items list
+            val items = inventory.items ?: emptyList()
 
-        // Update menu items list
-        val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
-        menuListView.adapter = EventInventoryAdapter(this, menuItems)
+            // Split items into menu and equipment
+            val menuItems = items.filter {
+                it.category?.equals("Food", ignoreCase = true) == true ||
+                        it.category?.equals("Beverage", ignoreCase = true) == true
+            }
+            val equipmentItems = items.filter {
+                it.category in listOf("Equipment", "Utensil", "Decoration")
+            }
 
-        // Update equipment list
-        val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
-        equipmentListView.adapter = EventInventoryAdapter(this, equipmentItems)
+            // Update menu items list
+            val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
+            menuListView.adapter = EventInventoryAdapter(this, menuItems)
+
+            // Update equipment list
+            val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
+            equipmentListView.adapter = EventInventoryAdapter(this, equipmentItems)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating inventory lists", e)
+            showError("Error displaying inventory items")
+
+            // Show empty state in lists
+            val menuListView = dialogView.findViewById<ListView>(R.id.event_menu_items)
+            val equipmentListView = dialogView.findViewById<ListView>(R.id.event_equipment_items)
+
+            menuListView.adapter = EventInventoryAdapter(this, emptyList())
+            equipmentListView.adapter = EventInventoryAdapter(this, emptyList())
+        }
     }
 
 
