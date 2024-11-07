@@ -2,6 +2,7 @@ package com.example.cateredtoyou.apifiles
 
 import android.util.Log
 import com.example.cateredtoyou.Client
+import com.example.cateredtoyou.TaskItem
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
@@ -12,6 +13,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -94,6 +96,12 @@ interface ApiConnect {
 
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
+
+    @GET("get_tasks.php")
+    fun getTasks(@Query("filter") filter: String): Call<List<TaskItem>>
+
+    @DELETE("delete_tasks.php")
+    fun deleteTasks(@Query("id") id: Int): Call<Void>
 
 
 

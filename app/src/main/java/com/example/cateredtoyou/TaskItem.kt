@@ -1,6 +1,8 @@
 package com.example.cateredtoyou
 
 data class TaskItem(
-    val taskName: String,
-    var isCompleted: Boolean = false
+    val id: Int,
+    val name: String,
+    val description: String,
+    val due_date: String
 )
