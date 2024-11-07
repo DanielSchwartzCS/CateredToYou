@@ -12,8 +12,10 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -101,6 +103,12 @@ interface ApiConnect {
         @Field("event_id") eventId: Int
     ): Call<DeleteResponse>
 
+    @GET("get_raw_inventory.php")
+    fun getRawInventory(): Call<List<InventoryItem>>
+
+    @POST("update_inventory.php")
+    @Headers("Content-Type: application/json")
+    fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
 
 
 }
@@ -284,4 +292,8 @@ data class EventInventoryItem(
 data class DeleteResponse(
     val status: Boolean,
     val message: String
+)
+data class UpdateInventoryRequest(
+    @SerializedName("id") val id: Int,
+    @SerializedName("quantity") val quantity: Int
 )
