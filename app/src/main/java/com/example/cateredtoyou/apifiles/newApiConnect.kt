@@ -12,41 +12,35 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
-import retrofit2.http.Headers
 import retrofit2.http.POST
-import retrofit2.http.Query
-
-
-// Url for the AWS web server
+import retrofit2.http.Path
+/*
+// Base URL for the PHP server
 private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/php/"
 
-// Lots of functions to connect to an api that returns a json file
-private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
+// Retrofit instance
+private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
+    .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
     .build()
 
-// interface for all of the functions that call the API
+// API interface
 interface ApiConnect {
     @FormUrlEncoded
     @POST("login.php")
     fun loginCheck(
         @Field("username") username: String,
-        @Field("password") password: String
-
+        @Field("password_hash") password: String //pw or pw_hash?
     ): Call<LoginResponse>
-
 
     @FormUrlEncoded
     @POST("add_employee.php")
     fun addUser(
         @Field("username") username: String,
         @Field("password") password: String
-
     ): Call<AddUserResponse>
-
 
     @GET("get_employees.php")
     fun getUser(): Call<List<User>>
@@ -56,8 +50,8 @@ interface ApiConnect {
     fun addClient(
         @Field("firstname") firstname: String,
         @Field("lastname") lastname: String,
-        @Field("email") email : String,
-        @Field("phonenumber") phonenumber : String
+        @Field("email") email: String,
+        @Field("phonenumber") phonenumber: String
     ): Call<AddClientResponse>
 
     @GET("get_clients.php")
@@ -78,7 +72,6 @@ interface ApiConnect {
         @Field("additional_info") additionalInfo: String
     ): Call<EventResponse>
 
-
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
 
@@ -92,27 +85,11 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
-
     @GET("get_event_inventory.php")
-    fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
-
-    @POST("delete_event.php")
-    @FormUrlEncoded
-    fun deleteEvent(
-        @Field("event_id") eventId: Int
-    ): Call<DeleteResponse>
-
-    @GET("get_raw_inventory.php")
-    fun getRawInventory(): Call<List<InventoryItem>>
-
-    @POST("update_inventory.php")
-    @Headers("Content-Type: application/json")
-    fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
-
-
+    fun getEventInventory(@Path("event_id") eventId: Int): Call<EventInventoryResponse>
 }
 
-// the connection object
+// Singleton for Database API
 object DatabaseApi {
     val retrofitService: ApiConnect by lazy {
         val logging = HttpLoggingInterceptor().apply {
@@ -123,40 +100,27 @@ object DatabaseApi {
             .addInterceptor(logging)
             .build()
 
-        // Create a lenient Gson instance
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
-
         Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setLenient().create()))
             .baseUrl(BASE_URL)
             .client(client)
             .build()
             .create(ApiConnect::class.java)
     }
 }
-// Data classes for the different responses based on the call
 
+// Data classes for API responses
 data class AddUserResponse(
     val status: String,
     val message: String
 )
 
 data class User(
-    @SerializedName("user_id") val userId: Int,
+    val id: Int,
     val username: String,
-    val password: String? = null,
-    val email: String? = null,
-    val phone: String? = null,
-    val role: String? = null,
-    @SerializedName("first_name")
-    val firstName: String,
-    @SerializedName("last_name")
-    val lastName: String
-) {
-    override fun toString(): String = "$firstName $lastName ($role)"
-}
+    val role: String?,
+    val pass: String
+)
 
 data class LoginResponse(
     val status: Boolean,
@@ -168,62 +132,10 @@ data class AddClientResponse(
     val message: String
 )
 
-fun clientCall(
-    onSuccess: (List<Client>) -> Unit,
-    onFailure: (Throwable) -> Unit = {t -> Log.e("ApiConnect", "Failed to connect", t)}
-){
-    DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
-        override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
-            if (response.isSuccessful) {
-                val rawResponse = response.body() ?: emptyList()
-                onSuccess(rawResponse)
-            }else{
-                onFailure(Throwable("Failed to load clients: ${response.message()}"))
-            }
-        }
-
-        override fun onFailure(call: Call<List<Client>>, t: Throwable) {
-            onFailure(t)
-        }
-    })
-}
-fun addClient(
-    firstname: String,
-    lastname: String,
-    email: String,
-    phonenumber: String,
-    onSuccess: (AddClientResponse) -> Unit,
-    onPartialSuccess: (AddClientResponse) -> Unit,
-    onFailure: (Throwable) -> Unit
-){
-    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse>{
-        override fun onResponse(
-            call: Call<AddClientResponse>,
-            response: Response<AddClientResponse>
-        ) {
-            if(response.isSuccessful){
-                val rawResponse = response.body()
-                if (rawResponse != null && rawResponse.status) {
-                    onSuccess(rawResponse)
-                }else if(rawResponse != null){
-                    onPartialSuccess(rawResponse)
-                }
-            }else{
-                onFailure(Throwable("Failed to add client: ${response.message()}"))
-            }
-        }
-
-        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
-            onFailure(t)
-        }
-    })
-
-}
-
 data class EventResponse(
-    @SerializedName("status") val status: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("event_id") val eventId: Int?
+    val status: Boolean,
+    val message: String,
+    val eventId: Int? = null
 )
 
 data class EventsResponse(
@@ -242,7 +154,6 @@ data class EventData(
     val status: String,
     val numberOfGuests: Int,
     val client: ClientData,
-    val employeeId: Int,
     val additionalInfo: String?
 )
 
@@ -269,7 +180,6 @@ data class InventoryItem(
     override fun toString(): String = itemName
 }
 
-
 data class BaseResponse(
     val status: Boolean,
     val message: String
@@ -277,22 +187,65 @@ data class BaseResponse(
 
 data class EventInventoryResponse(
     val status: Boolean,
-    val message: String?,
-    val items: List<EventInventoryItem>?
+    val items: List<EventInventoryItem>
 )
 
 data class EventInventoryItem(
     val id: Int,
     val itemName: String,
     val quantity: Int,
-    val category: String?,
+    val category: String,
     val unitOfMeasurement: String?
 )
-data class DeleteResponse(
-    val status: Boolean,
-    val message: String
-)
-data class UpdateInventoryRequest(
-    @SerializedName("id") val id: Int,
-    @SerializedName("quantity") val quantity: Int
-)
+
+// Function to fetch clients
+fun clientCall(
+    onSuccess: (List<Client>) -> Unit,
+    onFailure: (Throwable) -> Unit = { t -> Log.e("ApiConnect", "Failed to connect", t) }
+) {
+    DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
+        override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
+            if (response.isSuccessful) {
+                val rawResponse = response.body() ?: emptyList()
+                onSuccess(rawResponse)
+            } else {
+                onFailure(Throwable("Failed to load clients: ${response.message()}"))
+            }
+        }
+
+        override fun onFailure(call: Call<List<Client>>, t: Throwable) {
+            onFailure(t)
+        }
+    })
+}
+
+// Function to add a client
+fun addClient(
+    firstname: String,
+    lastname: String,
+    email: String,
+    phonenumber: String,
+    onSuccess: (AddClientResponse) -> Unit,
+    onPartialSuccess: (AddClientResponse) -> Unit,
+    onFailure: (Throwable) -> Unit
+) {
+    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse> {
+        override fun onResponse(call: Call<AddClientResponse>, response: Response<AddClientResponse>) {
+            if (response.isSuccessful) {
+                val rawResponse = response.body()
+                if (rawResponse != null && rawResponse.status) {
+                    onSuccess(rawResponse)
+                } else if (rawResponse != null) {
+                    onPartialSuccess(rawResponse)
+                }
+            } else {
+                onFailure(Throwable("Failed to add client: ${response.message()}"))
+            }
+        }
+
+        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
+            onFailure(t)
+        }
+    })
+}
+*/
