@@ -12,8 +12,10 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -77,6 +79,7 @@ interface ApiConnect {
         @Field("additional_info") additionalInfo: String
     ): Call<EventResponse>
 
+
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
 
@@ -90,9 +93,22 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
+
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
 
+    @POST("delete_event.php")
+    @FormUrlEncoded
+    fun deleteEvent(
+        @Field("event_id") eventId: Int
+    ): Call<DeleteResponse>
+
+    @GET("get_raw_inventory.php")
+    fun getRawInventory(): Call<List<InventoryItem>>
+
+    @POST("update_inventory.php")
+    @Headers("Content-Type: application/json")
+    fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
 
 
 }
@@ -129,11 +145,19 @@ data class AddUserResponse(
 )
 
 data class User(
-    val id: Int,
+    @SerializedName("user_id") val userId: Int,
     val username: String,
-    val role: String?,
-    val pass: String
-)
+    val password: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val role: String? = null,
+    @SerializedName("first_name")
+    val firstName: String,
+    @SerializedName("last_name")
+    val lastName: String
+) {
+    override fun toString(): String = "$firstName $lastName ($role)"
+}
 
 data class LoginResponse(
     val status: Boolean,
@@ -198,9 +222,9 @@ fun addClient(
 }
 
 data class EventResponse(
-    val status: Boolean,
-    val message: String,
-    val eventId: Int? = null
+    @SerializedName("status") val status: Boolean,
+    @SerializedName("message") val message: String,
+    @SerializedName("event_id") val eventId: Int?
 )
 
 data class EventsResponse(
@@ -219,6 +243,7 @@ data class EventData(
     val status: String,
     val numberOfGuests: Int,
     val client: ClientData,
+    val employeeId: Int,
     val additionalInfo: String?
 )
 
@@ -253,13 +278,22 @@ data class BaseResponse(
 
 data class EventInventoryResponse(
     val status: Boolean,
-    val items: List<EventInventoryItem>
+    val message: String?,
+    val items: List<EventInventoryItem>?
 )
 
 data class EventInventoryItem(
     val id: Int,
     val itemName: String,
     val quantity: Int,
-    val category: String,
+    val category: String?,
     val unitOfMeasurement: String?
+)
+data class DeleteResponse(
+    val status: Boolean,
+    val message: String
+)
+data class UpdateInventoryRequest(
+    @SerializedName("id") val id: Int,
+    @SerializedName("quantity") val quantity: Int
 )

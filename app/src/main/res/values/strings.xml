@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing strings -->
     <string name="app_name">CateredToYou</string>
     <string name="error_network">Network error occurred</string>
     <string name="error_server">Server error occurred</string>
@@ -11,4 +13,57 @@
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="success">Success</string>
+    <string name="select_staff_format">Select Staff (%d selected)</string>
+
+    <!-- New strings needed for EventsActivity -->
+    <string name="add_client_title">Add New Client</string>
+    <string name="add">Add</string>
+    <string name="confirm">Confirm</string>
+    <string name="create">Create</string>
+    <string name="edit">Edit</string>
+    <string name="leave">Leave</string>
+    <string name="stay">Stay</string>
+    <string name="select_staff">Select Staff</string>
+
+    <!-- Dialog titles -->
+    <string name="confirm_event_creation">Confirm Event Creation</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="unsaved_changes_message">You have unsaved changes. Are you sure you want to leave?</string>
+
+    <!-- Form validation errors -->
+    <string name="error_firstname_required">First name is required</string>
+    <string name="error_lastname_required">Last name is required</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_invalid_email">Invalid email format</string>
+    <string name="error_phone_required">Phone number is required</string>
+    <string name="error_invalid_phone">Phone number must contain 7–15 digits</string>
+    <string name="error_no_staff">No staff members available</string>
+    <string name="error_event_name_required">Event name is required</string>
+    <string name="error_location_required">Location is required</string>
+    <string name="error_client_required">Please select a client</string>
+    <string name="error_min_guests">Minimum guest count is %d</string>
+    <string name="error_max_guests">Maximum guest count is %d</string>
+    <string name="error_invalid_guest_count">Please enter a valid number of guests</string>
+    <string name="error_no_items_selected">Please select at least one menu item or equipment</string>
+    <string name="error_invalid_quantities">Invalid quantities selected for: %s</string>
+    <string name="error_date_time_required">Please select both date and time</string>
+    <string name="error_invalid_duration">Event duration must be between %1$d and %2$d hours</string>
+    <string name="error_future_date_required">Event must be scheduled for a future date and time</string>
+
+    <!-- Event details formatting -->
+    <string name="event_date_time_format">%1$s %2$s - %3$s</string>
+    <string name="event_confirmation_summary">Event Details:\n\nName: %1$s\nDate: %2$s\nTime: %3$s\nLocation: %4$s\nClient: %5$s\nGuests: %6$s\nMenu Items: %7$d\nEquipment: %8$d</string>
+    <string name="events_title">Events</string>
+    <!-- Success messages -->
+    <string name="event_created">Event created successfully</string>
+    <string name="client_added">Client added successfully</string>
+    <string name="inventory_updated">Inventory updated successfully</string>
+
+    <!-- General UI text -->
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="update">Update</string>
+    <string name="loading_clients">Loading clients…</string>
+    <string name="loading_inventory">Loading inventory…</string>
+    <string name="loading_staff">Loading staff members…</string>
 </resources>
