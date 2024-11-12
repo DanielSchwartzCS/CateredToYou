@@ -17,7 +17,7 @@ class DBController {
 
     function connectDB() {
         try {
-            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->database;
+            $dsn = "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->database;
             $conn = new PDO($dsn, $this->user, $this->password);
 
             // Set PDO to throw exceptions in case of an error
