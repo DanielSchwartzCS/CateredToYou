@@ -5,19 +5,32 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:layout_gravity="start"
+        android:textSize="16sp"
+        android:padding="8dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint = "@color/primaryColor" />
+
     <TextView
+        android:id="@+id/headerText"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="#FFFFBB33"
+        android:layout_height="wrap_content"
+        android:text="New Client"
+        android:textSize="36sp"
+        android:textColor="#000000"
         android:gravity="center"
-        android:text="Add Client"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:padding="16dp"
+         />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="24dp">
 
         <EditText
             android:id="@+id/first_name"
@@ -69,5 +82,15 @@
             android:inputType="phone"
             android:padding="12dp" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="#FFFFBB33"
+        android:gravity="center"
+        android:text="Add Client"
+        android:textSize="20sp"
+        android:layout_marginTop="32dp"
+        android:textStyle="bold" />
 
 </LinearLayout>
