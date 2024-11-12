@@ -31,7 +31,7 @@ function handleLogin() {
 
     if ($user && password_verify($password, $user['password_hash'])) {
         $token = generateJwt($user['user_id'], $user['role']);
-err        error_log("Generated token: " . $token);
+        error_log("Generated token: " . $token);
         $refreshToken = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
 
