@@ -1,6 +1,6 @@
 <?php
-require_once 'response.php';
 
+require_once 'response.php';
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -9,12 +9,16 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, Authorization');
 
+
+$uri = str_replace('/php', '', $uri);
 $segments = explode('/', trim($uri, '/'));
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Get the first segment as the target file
 $file = array_shift($segments);
 $filePath = "{$file}.php";
+
+//die("Requested URI: " . $uri . " ---  File path: " . $filePath);
 
 // Check if the file exists
 if (file_exists($filePath)) {
