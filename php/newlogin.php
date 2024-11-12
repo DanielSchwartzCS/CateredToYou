@@ -4,14 +4,19 @@ require_once 'auth.php';
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    handleLogin();
+function handleRequest($method, $segments) {
+    if ($method == 'POST' && $segments[0] === 'login' && empty($segments[1])) {
+        handleLogin();
+    } else {
+        respondWithError("Method not allowed", 405);
+    }
 }
 
 // Handle Login action
 function handleLogin() {
-    $username = $_POST['username'] ?? null;
-    $password = $_POST['password'] ?? null;
+    $input = json_decode(file_get_contents("php://input"), true);
+    $username = $input['username'] ?? null;
+    $password = $input['password'] ?? null;
 
     if (empty($username) || empty($password)) {
         respondWithError("Username and password are required", 400);

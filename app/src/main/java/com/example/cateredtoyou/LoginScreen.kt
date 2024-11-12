@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cateredtoyou.apifiles.DatabaseApi
+import com.example.cateredtoyou.apifiles.LoginRequest
 import com.example.cateredtoyou.apifiles.LoginResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -61,7 +62,9 @@ class LoginScreen : AppCompatActivity() {
             // Debug log
             Log.d("LoginScreen", "Attempting login with username: $username")
 
-            DatabaseApi.retrofitService.loginCheck(username, password).enqueue(object : Callback<LoginResponse> {
+            val loginRequest = LoginRequest(username, password)
+
+            DatabaseApi.retrofitService.loginCheck(loginRequest).enqueue(object : Callback<LoginResponse> {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     Log.d("LoginScreen", "Response received - Code: ${response.code()}")
                     Log.d("LoginScreen", "Response headers: ${response.headers()}")

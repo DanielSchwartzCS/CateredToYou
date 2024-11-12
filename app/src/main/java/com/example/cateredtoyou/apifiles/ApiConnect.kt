@@ -30,13 +30,9 @@ private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFacto
 
 // interface for all of the functions that call the API
 interface ApiConnect {
-    @FormUrlEncoded
-    @POST("login.php")
-    fun loginCheck(
-        @Field("username") username: String,
-        @Field("password") password: String
-
-    ): Call<LoginResponse>
+    @Headers("Content-Type: application/json")
+    @POST("newlogin.php")
+    fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
 
     @FormUrlEncoded
@@ -159,9 +155,16 @@ data class User(
     override fun toString(): String = "$firstName $lastName ($role)"
 }
 
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
 data class LoginResponse(
     val status: Boolean,
-    val message: String
+    val message: String,
+    val token: String? = null,
+    val refreshToken: String? = null
 )
 
 data class AddClientResponse(
