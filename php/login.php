@@ -5,7 +5,8 @@ require_once 'dbcontroller.php';
 require_once 'response.php';
 
 function handleRequest($method, $segments) {
-    if ($method == 'POST' && $segments[0] === 'login' && empty($segments[1])) {
+die("method = " . $method . " --- seg[0] = " . $segments[0]);
+    if ($method == 'POST' && empty($segments[0])) {
         handleLogin();
     } else {
         respondWithError("Method not allowed", 405);
