@@ -3,10 +3,11 @@ require_once 'response.php';
 
 class DBController {
     public $conn;
-    private $host = "sql3.freemysqlhosting.net";
-    private $database = "sql3731131";
-    private $user = "sql3731131";
-    private $password = "Dinosaur1234!!";
+    private $host = "db5016655588.hosting-data.io";
+    private $database = "dbs13496615";
+    private $user = "dbu370122";
+    private $password = "rq\$nCYe$9Xv\$izi!!";
+    private $dbh = null;
 
     function __construct() {
         $this->conn = $this->connectDB();
