@@ -10,6 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.SearchView
 import android.widget.Toast
 
+import android.animation.ObjectAnimator
+import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+
+
 class TaskView : AppCompatActivity() {
 
     private lateinit var taskRecyclerView: RecyclerView
@@ -42,6 +48,9 @@ class TaskView : AppCompatActivity() {
 
         // Add Task Button click listener
         addTaskButton.setOnClickListener {
+
+            applyButtonAnimations(addTaskButton)
+
             val taskName = inputTask.text.toString().trim() // Remove leading and trailing whitespace
 
             // Validate and sanitize the task name
@@ -103,4 +112,19 @@ class TaskView : AppCompatActivity() {
             .replace("\"", "&quot;")
             .replace("'", "&#x27;")
     }
+}
+
+private fun applyButtonAnimations(button: Button) {
+    button.animate()
+        .scaleX(1.1f)
+        .scaleY(1.1f)
+        .setDuration(100)
+        .withEndAction {
+            button.animate().scaleX(1.0f).scaleY(1.0f).duration = 100
+        }
+
+    button.setBackgroundColor(Color.LTGRAY)
+    Handler(Looper.getMainLooper()).postDelayed({
+        button.setBackgroundColor(Color.WHITE)
+    }, 100)
 }
