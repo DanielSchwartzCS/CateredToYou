@@ -3,10 +3,10 @@ require_once 'response.php';
 
 class DBController {
     public $conn;
-    private $host = "db5016655588.hosting-data.io";
-    private $database = "dbs13496615";
-    private $user = "dbu370122";
-    private $password = "rq\$nCYe$9Xv\$izi!!";
+    private $host = "cateredtoyou.c3i6ogyq4iu0.us-west-1.rds.amazonaws.com";
+    private $database = "cateredtoyou";
+    private $user = "admin";
+    private $password = "Dinosausaur1234!!";
     private $dbh = null;
 
     function __construct() {
