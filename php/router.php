@@ -1,14 +1,13 @@
 <?php
-
 require_once 'response.php';
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Credentials: true");
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, Authorization');
-
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 $uri = str_replace('/php', '', $uri);
 $segments = explode('/', trim($uri, '/'));
@@ -22,10 +21,12 @@ $filePath = "{$file}.php";
 
 // Check if the file exists
 if (file_exists($filePath)) {
+    echo(111);
     require $filePath;
-
+    echo(444);
     // Call handleRequest in the file with the remaining segments
     if (function_exists('handleRequest')) {
+echo(555);
         handleRequest($method, $segments);
     } else {
         respondWithError("Handler function not found in $filePath", 500);

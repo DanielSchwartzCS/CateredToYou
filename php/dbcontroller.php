@@ -1,4 +1,5 @@
 <?php
+echo("in adbconroller.php");
 require_once 'response.php';
 
 class DBController {
@@ -10,6 +11,7 @@ class DBController {
     private $dbh = null;
 
     function __construct() {
+        echo("23jfo2i3fjo");
         $this->conn = $this->connectDB();
         if (!$this->conn) {
             respondWithError("Connection failed!", 500);
