@@ -1,11 +1,10 @@
 <?php
-require_once 'dbcontroller.php';
 require_once 'auth.php';
+require_once 'dbcontroller.php';
 require_once 'response.php';
 
 
 function handleRequest($method, $segments) {
-echo(333);
     if ($method == 'POST') {
         handleLogin();
     } else {
@@ -48,3 +47,4 @@ function handleLogin() {
     }
 }
 ?>
+

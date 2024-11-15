@@ -21,9 +21,7 @@ $filePath = "{$file}.php";
 
 // Check if the file exists
 if (file_exists($filePath)) {
-    echo(111);
     require $filePath;
-    echo(444);
     // Call handleRequest in the file with the remaining segments
     if (function_exists('handleRequest')) {
 echo(555);

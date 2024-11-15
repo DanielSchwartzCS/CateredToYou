@@ -1,5 +1,4 @@
 <?php
-echo("in adbconroller.php");
 require_once 'response.php';
 
 class DBController {
@@ -11,7 +10,6 @@ class DBController {
     private $dbh = null;
 
     function __construct() {
-        echo("23jfo2i3fjo");
         $this->conn = $this->connectDB();
         if (!$this->conn) {
             respondWithError("Connection failed!", 500);
@@ -20,14 +18,14 @@ class DBController {
 
     function connectDB() {
         try {
-            $dsn = "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->>
+            $dsn = "mysql:host=" . $this->host . ";port=3306;dbname=" . $this->database;
             $conn = new PDO($dsn, $this->user, $this->password);
 
             // Set PDO to throw exceptions in case of an error
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $conn;
         } catch (PDOException $e) {
-            respondWithError("Failed to connect to the database: " . $e->getMes>
+            respondWithError("Failed to connect to the database: " . $e->getMessage(), 500);
         }
     }
 
@@ -36,3 +34,4 @@ class DBController {
     }
 }
 ?>
+
