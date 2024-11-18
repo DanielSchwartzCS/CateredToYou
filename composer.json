@@ -1,0 +1,9 @@
+{
+    "name": "cty/php",
+    "description": "restful api php files",
+    "type": "project",
+    "require": {
+        "firebase/php-jwt": "^6.10"
+    },
+    "minimum-stability": "stable"
+}
