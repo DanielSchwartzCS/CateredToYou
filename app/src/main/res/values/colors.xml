@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#FFC533</color> <!-- Example of a warm orange -->
+    <color name="primaryColorVariant">#E07A5F</color> <!-- A darker orange variant -->
+    <color name="secondaryColor">#FFFFFF</color> <!-- White for secondary -->
+    <color name="colorOnPrimary">#000000</color> <!-- Black text on orange background -->
+    <color name="colorOnSecondary">#000000</color> <!-- Black text on white background -->
+    <color name="status_pending">#FFA000</color>
+    <color name="status_confirmed">#4CAF50</color>
+    <color name="status_completed">#2196F3</color>
+    <color name="status_canceled">#F44336</color>
+    <color name="selected_card_background">#E3F2FD</color>
+</resources>

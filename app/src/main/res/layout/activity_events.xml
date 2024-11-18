@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+
+
+        <Button
+            android:id="@+id/back_to_MainActivity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_gravity="start"
+            android:padding="12dp"
+            android:layout_marginBottom="18dp"/>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Event"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:layout_marginBottom="26dp" />
+
+        <EditText
+            android:id="@+id/event_name_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Name"
+            android:inputType="text"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/event_date_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Date (DD/MM/YYYY)"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginBottom="22dp" />
+
+        <EditText
+            android:id="@+id/event_start_time_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Start Time (HH:MM)"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/event_end_time_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="End Time (HH:MM)"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginBottom="22dp" />
+
+        <EditText
+            android:id="@+id/event_location_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Location"
+            android:inputType="text"
+            android:layout_marginBottom="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Client or Create New:"
+            android:textSize="16sp"
+            android:layout_marginBottom="18dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="18dp">
+
+            <Spinner
+                android:id="@+id/client_spinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/create_new_client_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Client"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/expected_guests_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Expected Guests"
+            android:inputType="number"
+            android:layout_marginBottom="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event Status:"
+            android:textSize="16sp"
+            android:layout_marginBottom="18dp" />
+
+        <Spinner
+            android:id="@+id/status_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assign Staff:"
+            android:textSize="16sp"
+            android:layout_marginBottom="18dp" />
+
+        <Button
+            android:id="@+id/select_staff_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Staff (0 selected)"
+            android:layout_marginBottom="22dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Menu Items:"
+            android:textSize="16sp"
+            android:layout_marginBottom="18dp" />
+
+        <ListView
+            android:id="@+id/menu_item_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="200dp"
+            android:layout_marginBottom="18dp"
+            android:nestedScrollingEnabled="true"
+            tools:listitem="@layout/item_inventory"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Equipment:"
+            android:textSize="16sp"
+            android:layout_marginBottom="18dp" />
+
+        <ListView
+            android:id="@+id/equipment_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="200dp"
+            android:layout_marginBottom="22dp"
+            android:nestedScrollingEnabled="true"
+            tools:listitem="@layout/item_inventory"/>
+
+        <Button
+            android:id="@+id/add_event_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Event"
+            android:layout_marginBottom="22dp" />
+
+
+    </LinearLayout>
+</ScrollView>

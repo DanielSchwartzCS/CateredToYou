@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CateredToYou" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color (Orange) -->
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryVariant">@color/primaryColorVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item> <!-- Black text on Orange -->
+
+        <!-- Secondary brand color (White) -->
+        <item name="colorSecondary">@color/secondaryColor</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item> <!-- Black text on White -->
+
+        <!-- Global checkmark and button tint styles -->
+        <item name="android:checkMarkTint">@color/colorOnPrimary</item> <!-- For CheckedTextView and ListView -->
+        <item name="android:buttonTint">@color/colorOnPrimary</item> <!-- For CheckBox -->
+    </style>
+
+    <style name="Theme.CateredToYou" parent="Base.Theme.CateredToYou" />
+</resources>
