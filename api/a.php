@@ -2,7 +2,7 @@
 require_once 'jwt.php';
 require_once 'auth.php';
 
-echo 'Hook test 2';
+echo 'Hook test 3';
 
 class DBController {
     public $conn;
