@@ -2,7 +2,7 @@
 require_once 'jwt.php';
 require_once 'auth.php';
 
-echo '332fj2o';
+echo 'Hooked';
 
 class DBController {
     public $conn;
