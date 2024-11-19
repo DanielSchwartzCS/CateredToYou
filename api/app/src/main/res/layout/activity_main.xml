@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <!-- Text displaying Main Menu-->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Main Menu"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <!--Inventory Button-->
+    <Button
+        android:id="@+id/btn_inventory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Inventory Management"
+        android:layout_marginBottom="16dp" />
+
+    <!--Events Button-->
+    <Button
+        android:id="@+id/btn_events"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Event"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Create Events View button -->
+    <Button
+        android:id="@+id/btn_eventsview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Events"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Create Task View Button -->
+    <Button
+        android:id="@+id/btn_taskview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Task List"
+        android:layout_marginBottom="16dp" />
+
+
+    <Button
+        android:id="@+id/btn_users"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Users"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btn_recipes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recipes" />
+
+</LinearLayout>
