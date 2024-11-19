@@ -2,8 +2,6 @@
 require_once 'jwt.php';
 require_once 'auth.php';
 
-echo 'Hook test 14';
-
 class DBController {
     public $conn;
     private $host = "143.110.237.101";
@@ -44,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $input['password'] ?? null;
 
     if (empty($username) || empty($password)) {
-        echo("yo put in user/pw");
+        respondWithError("Username and password are required", 400);
     }
 
     // Query to check user credentials
@@ -72,10 +70,9 @@ try {
         $token = generateJwt($user['user_id'], $user['role']);
         $refreshToken = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
-	echo 'attempingt ot store token';
         storeRefreshToken($user['user_id'], $refreshToken, $expiresAt);
 	echo 'stored';
-
+	respondWithSuccess("Login succesfull");
     } else {
 echo("uhoh");
     }
