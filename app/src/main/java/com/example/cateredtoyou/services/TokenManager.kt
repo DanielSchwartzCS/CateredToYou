@@ -53,13 +53,13 @@ class TokenManager(context: Context) {
             try {
                 // Call the API to refresh the token
                 val response = ApiConnect.refreshToken(refreshToken) //replace with correct call
-                if (response.isSuccessful) {
-                    val newAccessToken = response.body()?.accessToken
+                if (true /*response.isSuccessful*/) {
+                    /*val newAccessToken = response.body()?.accessToken
                     if (newAccessToken != null) {
                         // Save new tokens
                         saveTokens(newAccessToken, refreshToken)
                         return@withContext newAccessToken
-                    }
+                    }*/
                 }
             } catch (e: Exception) {
                 // Log or handle the error

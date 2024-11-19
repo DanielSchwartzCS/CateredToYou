@@ -92,6 +92,9 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
+    @POST("/refresh")
+    suspend fun refreshToken(@Body refreshRequest: RefreshRequest): Response<TokenResponse>
+
 
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
@@ -108,6 +111,12 @@ interface ApiConnect {
     @POST("update_inventory.php")
     @Headers("Content-Type: application/json")
     fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
+
+    companion object {
+        fun refreshToken(refreshToken: String): Any {
+            return TODO("Provide the return value")
+        }
+    }
 
 
 }
@@ -169,6 +178,11 @@ data class LoginResponse(
     val token: String? = null,
     val refreshToken: String? = null
 )
+
+data class RefreshRequest(
+    val refreshToken: String
+)
+
 
 data class AddClientResponse(
     val status: Boolean,
@@ -259,6 +273,11 @@ data class ClientData(
     val lastname: String,
     val email: String,
     val phonenumber: String
+)
+
+data class TokenResponse(
+    val accessToken: String,
+    val refreshToken: String
 )
 
 data class InventoryItem(
