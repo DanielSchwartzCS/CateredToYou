@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.cfg.pseudocode.and
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -40,7 +38,7 @@ android {
 
 dependencies {
 
-        implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     // Retrofit with Scalar Converter
@@ -51,6 +49,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)

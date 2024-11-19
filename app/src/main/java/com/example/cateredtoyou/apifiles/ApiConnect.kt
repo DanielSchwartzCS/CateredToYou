@@ -31,7 +31,7 @@ private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFacto
 // interface for all of the functions that call the API
 interface ApiConnect {
     @Headers("Content-Type: application/json")
-    @POST("newlogin.php")
+    @POST("login")
     fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
 
