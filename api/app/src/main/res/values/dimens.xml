@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="card_corner_radius">8dp</dimen>
-    <dimen name="card_elevation">4dp</dimen>
-    <dimen name="empty_list_height">100dp</dimen>
-    <dimen name="list_divider_height">8dp</dimen>
-    <dimen name="status_padding_horizontal">12dp</dimen>
-    <dimen name="status_padding_vertical">6dp</dimen>
-</resources>

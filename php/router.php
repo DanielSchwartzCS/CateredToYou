@@ -24,7 +24,6 @@ if (file_exists($filePath)) {
     require $filePath;
     // Call handleRequest in the file with the remaining segments
     if (function_exists('handleRequest')) {
-echo(555);
         handleRequest($method, $segments);
     } else {
         respondWithError("Handler function not found in $filePath", 500);
