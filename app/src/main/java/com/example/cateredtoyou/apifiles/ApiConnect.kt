@@ -44,6 +44,9 @@ interface ApiConnect {
     ): Call<AddUserResponse>
 
 
+    @FormUrlEncoded
+    @POST("refreshtoken.php")  // TODO:make refresh_token.php
+    fun refreshToken(@Field("refresh_token") refreshToken: String): Call<LoginResponse>
 
     @GET("get_employees.php")
     fun getUser(): Call<List<User>>
