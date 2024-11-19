@@ -10,8 +10,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-
-
         <Button
             android:id="@+id/back_to_MainActivity"
             android:layout_width="wrap_content"
@@ -176,7 +174,22 @@
             android:layout_marginBottom="22dp"
             android:nestedScrollingEnabled="true"
             tools:listitem="@layout/item_inventory"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notes:"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
 
+        <EditText
+            android:id="@+id/notes_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter any additional notes"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="22dp"
+            android:gravity="top"
+            android:lines="4" />
         <Button
             android:id="@+id/add_event_button"
             android:layout_width="match_parent"
