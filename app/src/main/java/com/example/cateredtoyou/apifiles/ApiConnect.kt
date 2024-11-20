@@ -21,7 +21,7 @@ import retrofit2.http.Query
 
 
 // Url for the AWS web server
-private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/php/"
+private const val BASE_URL = "http://54.219.249.27/"
 
 // Lots of functions to connect to an api that returns a json file
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
@@ -43,10 +43,6 @@ interface ApiConnect {
 
     ): Call<AddUserResponse>
 
-
-    @FormUrlEncoded
-    @POST("refreshtoken.php")  // TODO:make refresh_token.php
-    fun refreshToken(@Field("refresh_token") refreshToken: String): Call<LoginResponse>
 
     @GET("get_employees.php")
     fun getUser(): Call<List<User>>
@@ -92,7 +88,7 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
-    @POST("/refresh")
+    @POST("/refreshtoken")
     suspend fun refreshToken(@Body refreshRequest: RefreshRequest): Response<TokenResponse>
 
 

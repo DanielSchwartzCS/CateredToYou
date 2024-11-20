@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
