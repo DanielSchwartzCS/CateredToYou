@@ -1,5 +1,5 @@
 <?php
-echo ("in router");
+// echo ("in router");
 require_once 'response.php';
 
 header('Content-Type: application/json');

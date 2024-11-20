@@ -18,14 +18,14 @@ function generateJwt($userId, $role) {
         'role' => $role
     ];
     try {
-        echo "Payload: ";
-        var_dump($payload);
+//         echo "Payload: ";
+//         var_dump($payload);
 	$tokenResponse = JWT::encode($payload, $secretKey, 'HS256');
-	echo "generated";
+// 	echo "generated";
         return $tokenResponse;
     } catch (Exception $e) {
         // Log the error for debugging
-        echo("Error generating JWT: " . $e->getMessage());
+//         echo("Error generating JWT: " . $e->getMessage());
         return null;
     }
 

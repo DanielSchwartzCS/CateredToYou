@@ -1,5 +1,5 @@
 <?php
-require_once response.php;
+require_once 'response.php';
 require_once 'auth.php';
 
 // Check if it's a POST request
