@@ -21,7 +21,7 @@ import retrofit2.http.Query
 
 
 // Url for the AWS web server
-private const val BASE_URL = "http://ec2-13-56-230-200.us-west-1.compute.amazonaws.com/php/"
+private const val BASE_URL = "http://54.219.249.27/"
 
 // Lots of functions to connect to an api that returns a json file
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
@@ -30,13 +30,9 @@ private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFacto
 
 // interface for all of the functions that call the API
 interface ApiConnect {
-    @FormUrlEncoded
-    @POST("login.php")
-    fun loginCheck(
-        @Field("username") username: String,
-        @Field("password") password: String
-
-    ): Call<LoginResponse>
+    @Headers("Content-Type: application/json")
+    @POST("login")
+    fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
 
     @FormUrlEncoded
@@ -46,7 +42,6 @@ interface ApiConnect {
         @Field("password") password: String
 
     ): Call<AddUserResponse>
-
 
 
     @GET("get_employees.php")
@@ -93,6 +88,9 @@ interface ApiConnect {
         @Field("inventory_items") inventoryItems: String
     ): Call<BaseResponse>
 
+    @POST("/refreshtoken")
+    suspend fun refreshToken(@Body refreshRequest: RefreshRequest): Response<TokenResponse>
+
 
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
@@ -109,6 +107,12 @@ interface ApiConnect {
     @POST("update_inventory.php")
     @Headers("Content-Type: application/json")
     fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
+
+    companion object {
+        fun refreshToken(refreshToken: String): Any {
+            return TODO("Provide the return value")
+        }
+    }
 
 
 }
@@ -159,10 +163,22 @@ data class User(
     override fun toString(): String = "$firstName $lastName ($role)"
 }
 
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
 data class LoginResponse(
     val status: Boolean,
-    val message: String
+    val message: String,
+    val token: String? = null,
+    val refreshToken: String? = null
 )
+
+data class RefreshRequest(
+    val refreshToken: String
+)
+
 
 data class AddClientResponse(
     val status: Boolean,
@@ -253,6 +269,11 @@ data class ClientData(
     val lastname: String,
     val email: String,
     val phonenumber: String
+)
+
+data class TokenResponse(
+    val accessToken: String,
+    val refreshToken: String
 )
 
 data class InventoryItem(
