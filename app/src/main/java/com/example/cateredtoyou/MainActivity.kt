@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import android.app.ActivityOptions
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,42 +15,55 @@ class MainActivity : AppCompatActivity() {
         val btnInventory: Button = findViewById(R.id.btn_inventory)
         btnInventory.setOnClickListener {
             val intent = Intent(this, InventoryActivity::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
 
         val btnEvents: Button = findViewById(R.id.btn_events)
         btnEvents.setOnClickListener {
             val intent = Intent(this, EventsActivity::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
 
         val btnUsers: Button = findViewById(R.id.btn_users)
         btnUsers.setOnClickListener {
             val intent = Intent(this, UserActivity::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
 
-        // New button for Recipes
         val btnRecipes: Button = findViewById(R.id.btn_recipes)
         btnRecipes.setOnClickListener {
             val intent = Intent(this, RecipeActivity::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
 
-        // New button for EventsView
         val btnEventsView: Button = findViewById(R.id.btn_eventsview)
         btnEventsView.setOnClickListener {
             val intent = Intent(this, EventsView::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
 
-        //New button for Task View
         val btnTaskView: Button = findViewById(R.id.btn_taskview)
         btnTaskView.setOnClickListener {
             val intent = Intent(this, TaskView::class.java)
-            startActivity(intent)
+            val options = ActivityOptions.makeCustomAnimation(
+                this, R.anim.slide_in_right, R.anim.slide_out_left
+            )
+            startActivity(intent, options.toBundle())
         }
-
-
     }
 }

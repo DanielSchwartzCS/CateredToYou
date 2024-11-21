@@ -11,8 +11,9 @@
         android:src="@drawable/restaurant_svgrepo_com"
         android:scaleType="centerCrop"
         android:layout_marginBottom="50dp"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_marginTop="50dp"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_gravity="center" />
 
     <!-- Header Text -->
@@ -29,26 +30,28 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Your journey to delicious catering begins here."
-        android:layout_marginBottom="64dp" />
+        android:layout_marginBottom="32dp" />
 
     <!-- Continue Button -->
-    <Button
-        android:id="@+id/continue_button"
-        android:layout_width="304dp"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#FFC533"
-        android:padding="20dp"
-        android:text="Continue"
-        android:textSize="25sp"
-        android:layout_marginBottom="64dp"/>
 
     <!-- Question and Email Link -->
+    <Button
+        android:id="@+id/continue_button"
+        android:layout_width="364dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:backgroundTint="#FFC533"
+        android:padding="20dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:text="Get Started"
+        android:textSize="25sp" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Questions? "
-        android:layout_marginTop="128dp"
-        android:textStyle="bold"/>
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -57,7 +60,6 @@
         android:textColor="@android:color/holo_blue_dark"
         android:autoLink="email"
         android:clickable="true"
-        android:layout_marginTop="8dp"
         android:padding="4dp"
         android:textSize="16sp"
         />

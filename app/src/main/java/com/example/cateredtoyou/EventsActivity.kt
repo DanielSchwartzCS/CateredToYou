@@ -21,6 +21,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+import android.view.animation.AnimationUtils
+
 class EventsActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "EventsActivity"
@@ -50,9 +52,9 @@ class EventsActivity : AppCompatActivity() {
                     })
                 }
             }.toString()
-    
+
             Log.d(TAG, "Submitting inventory for event $eventId: $inventoryJson")
-    
+
             DatabaseApi.retrofitService.addEventInventory(eventId, inventoryJson)
                 .enqueue(object : Callback<BaseResponse> {
                     override fun onResponse(
@@ -67,7 +69,7 @@ class EventsActivity : AppCompatActivity() {
                         }
                         eventsActivity.hideProgressBar()
                     }
-    
+
                     override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
                         eventsActivity.handleNetworkError("Network error while saving inventory", t)
                         eventsActivity.hideProgressBar()
@@ -225,6 +227,17 @@ class EventsActivity : AppCompatActivity() {
 
         newClientButton.setOnClickListener {
             showAddClientDialog()
+
+            // Animation for button
+            val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_button)  // Scale animation
+            val fadeAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_button)   // Fade animation
+            val slideAnimation = AnimationUtils.loadAnimation(this, R.anim.slide_button) // Slide animation
+            // Apply scale animation on click
+            it.startAnimation(scaleAnimation)
+            // Or apply fade in and slide in together (for example)
+            it.startAnimation(fadeAnimation)
+            it.startAnimation(slideAnimation)
+
         }
 
         selectStaffButton.setOnClickListener {

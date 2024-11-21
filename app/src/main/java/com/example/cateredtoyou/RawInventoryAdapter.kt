@@ -12,6 +12,11 @@ import com.example.cateredtoyou.R
 import com.example.cateredtoyou.apifiles.InventoryItem
 import com.google.android.material.button.MaterialButton
 
+import android.animation.ObjectAnimator
+import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+
 class RawInventoryAdapter(
     private val onQuantityChanged: (InventoryItem, Int) -> Unit
 ) : ListAdapter<InventoryItem, RawInventoryAdapter.ViewHolder>(InventoryDiffCallback()) {
@@ -42,14 +47,31 @@ class RawInventoryAdapter(
             updateLowStockWarning(item)
 
             increaseButton.setOnClickListener {
+                applyButtonAnimations(increaseButton)
                 onQuantityChanged(item, item.quantity + 1)
             }
 
             decreaseButton.setOnClickListener {
+                applyButtonAnimations(decreaseButton)
                 if (item.quantity > 0) {
                     onQuantityChanged(item, item.quantity - 1)
                 }
             }
+        }
+
+        private fun applyButtonAnimations(button: MaterialButton) {
+            button.animate()
+                .scaleX(1.1f)
+                .scaleY(1.1f)
+                .setDuration(100)
+                .withEndAction {
+                    button.animate().scaleX(1.0f).scaleY(1.0f).duration = 100
+                }
+
+            button.setBackgroundColor(Color.LTGRAY)
+            Handler(Looper.getMainLooper()).postDelayed({
+                button.setBackgroundColor(Color.WHITE)
+            }, 100)
         }
 
         private fun updateQuantityText(item: InventoryItem) {

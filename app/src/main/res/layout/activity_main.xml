@@ -21,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Inventory Management"
+        android:padding="18dp"
         android:layout_marginBottom="16dp" />
 
     <!--Events Button-->
@@ -29,7 +30,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Create Event"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:padding="18dp"
+        />
 
     <!-- Create Events View button -->
     <Button
@@ -37,6 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="View Events"
+        android:padding="18dp"
         android:layout_marginBottom="16dp" />
 
     <!-- Create Task View Button -->
@@ -45,6 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Task List"
+        android:padding="18dp"
         android:layout_marginBottom="16dp" />
 
 
@@ -53,12 +58,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Users"
+        android:padding="18dp"
         android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btn_recipes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="18dp"
         android:text="Recipes" />
 
 </LinearLayout>
