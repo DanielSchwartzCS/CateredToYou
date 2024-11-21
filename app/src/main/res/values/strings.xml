@@ -66,4 +66,7 @@
     <string name="loading_clients">Loading clients…</string>
     <string name="loading_inventory">Loading inventory…</string>
     <string name="loading_staff">Loading staff members…</string>
+
+    <!--    Text for signup spinner employment status-->
+    <string name="employment_status_prompt">Select Employment Status</string>
 </resources>
