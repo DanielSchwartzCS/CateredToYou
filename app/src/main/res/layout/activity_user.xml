@@ -43,14 +43,16 @@
             android:layout_width="match_parent"
             android:layout_height="65dp"
             android:layout_margin="15dp"
-            android:hint="Enter username" />
+            android:hint="Enter username"
+            android:inputType="textPersonName" />
 
         <EditText
             android:id="@+id/et_b"
             android:layout_width="match_parent"
             android:layout_height="65dp"
             android:layout_margin="15dp"
-            android:hint="Enter password" />
+            android:hint="Enter password"
+            android:inputType="textPassword" />
 
         <!-- New Fields -->
         <EditText
@@ -125,6 +127,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
             android:prompt="@string/employment_status_prompt" />
+
         <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
