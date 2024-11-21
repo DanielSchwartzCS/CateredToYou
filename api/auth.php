@@ -1,93 +1,91 @@
 <?php
+require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
+require_once 'auth.php';
 
+function handleRequest($method, $segments) {
+    if ($method !== 'POST') {
+        respondWithError("Method not allowed", 405);
+        return;
+    }
 
-// Function to store a refresh token in the database
-function storeRefreshToken($userId, $token, $expiresAt) {
-    $db = new DBController();
-    $cleanupStmt = $db->conn->prepare("UPDATE refresh_tokens SET is_expired = TRUE WHERE expires_at < NOW()");
-    $cleanupStmt->execute();
+    $routeHandlers = [
+        '' => 'login',
+        'refresh' => 'refresh',
+        'logout' => 'logout'
+    ];
 
-    $stmt = $db->conn->prepare("INSERT INTO refresh_tokens (user_id, token, expires_at, usage_count) VALUES (:user_id, :token, :expires_at, 0)");
-    $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-    $stmt->bindParam(':expires_at', $expiresAt, PDO::PARAM_STR);
-
-    if ($stmt->execute()) {
-        return true;
+    $route = implode('/', $segments);
+    if (isset($routeHandlers[$route])) {
+        $handlerFunction = $routeHandlers[$route];
+        $handlerFunction();
     } else {
-        respondWithError("Failed to store token: " . $stmt->errorInfo()[2], 500);
+        respondWithError("Route not found", 404);
     }
 }
 
-// Function to mark a refresh token as expired
-function markTokenAsExpired($token) {
-    $db = new DBController();
-    $stmt = $db->conn->prepare("UPDATE refresh_tokens SET is_expired = TRUE WHERE token = :token");
-    $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-    $stmt->execute();
+// Handle login: authenticate user and return JWT
+function login() {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $username = $data['username'] ?? '';
+    $password = $data['password'] ?? '';
+
+    if (empty($username) || empty($password)) {
+        respondWithError("Username and password are required", 400);
+    }
+
+    $userData = executeQuery("SELECT user_id, password_hash, role FROM users WHERE username = :username",
+        [':username' => $username]);
+
+    if (password_verify($password, $userData['password_hash'])) {
+        $jwt = generateJwt($userData['user_id'], $userData['role']);
+
+        // Create and store refresh token
+        $refreshToken = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
+        storeRefreshToken($userData['user_id'], $refreshToken, $expiresAt);
+
+        respondWithSuccess(200, "Login successful", ['jwt' => $jwt, 'refresh_token' => $refreshToken]);
+    } else {
+        respondWithError("Invalid credentials", 401);
+    }
 }
 
-// Function to validate and refresh JWT based on refresh token
-function refreshJwt($refreshToken) {
-    $db = new DBController();
-    $stmt = $db->conn->prepare("SELECT user_id, expires_at, usage_count FROM refresh_tokens WHERE token = :token AND is_expired = FALSE");
-    $stmt->bindParam(':token', $refreshToken, PDO::PARAM_STR);
-    $stmt->execute();
-    $tokenData = $stmt->fetch(PDO::FETCH_ASSOC);
+// Handle refresh: validate refresh token and return new JWT
+function refresh() {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $refreshToken = $data['refresh_token'] ?? '';
 
-    if (!$tokenData) {
-        respondWithError("Invalid or expired refresh token.", 401);
+    if (empty($refreshToken)) {
+        respondWithError("Refresh token is required", 400);
     }
 
-    if (strtotime($tokenData['expires_at']) < time()) {
-        respondWithError("Refresh token expired.", 401);
+    // Validate and refresh JWT using the provided refresh token
+    $userData = refreshJwt($refreshToken);
+
+    if (!$userData) {
+        respondWithError("Invalid or expired refresh token", 401);
     }
 
-    $usageLimit = 5;
-    if ($tokenData['usage_count'] >= $usageLimit) {
-        respondWithError("Refresh token has reached its usage limit.", 403);
+    $jwt = generateJwt($userData->userId, $userData->role);
+
+    respondWithSuccess(200, "JWT refreshed successfully", ['jwt' => $jwt]);
+}
+
+// Handle logout: mark the refresh token as expired
+function logout() {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $refreshToken = $data['refresh_token'] ?? '';
+
+    if (empty($refreshToken)) {
+        respondWithError("Refresh token is required", 400);
     }
 
-    $updateStmt = $db->conn->prepare("UPDATE refresh_tokens SET usage_count = usage_count + 1 WHERE token = :token");
-    $updateStmt->bindParam(':token', $refreshToken, PDO::PARAM_STR);
-    $updateStmt->execute();
-
-    $stmt = $db->conn->prepare("SELECT role FROM users WHERE user_id = :user_id");
-    $stmt->bindParam(':user_id', $tokenData['user_id'], PDO::PARAM_INT);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user) {
-        respondWithError("User not found.", 404);
-    }
-
-    $newJwt = generateJwt($tokenData['user_id'], $user['role']);
+    // Mark the refresh token as expired in the database
     markTokenAsExpired($refreshToken);
 
-    respondWithSuccess(200, "Token refreshed successfully", [
-        "token" => $newJwt,
-        "expiresAt" => date('Y-m-d H:i:s', time() + 3600)
-    ]);
+    respondWithSuccess(200, "Logged out successfully");
 }
 
-// Function to validate the authorization header and extract user data
-function validateAuthorization($header) {
-    if (!$header) {
-        return null;
-    }
-
-    $jwt = str_replace('Bearer ', '', $header);
-    try {
-        return JWT::decode($jwt, 'secret_key');
-    } catch (Exception $e) {
-        if (isset($_POST['refreshToken'])) {
-            $refreshToken = $_POST['refreshToken'];
-            refreshJwt($refreshToken);
-        } else {
-            respondWithError("Invalid token and no refresh token provided.", 401);
-        }
-    }
-}
 ?>

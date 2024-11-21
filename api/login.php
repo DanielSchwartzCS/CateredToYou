@@ -29,9 +29,7 @@ function handleLogin() {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password_hash'])) {
-        error_log("made it to line 33");
         $token = generateJwt($user['user_id'], $user['role']);
-        error_log("Generated token: " . $token);
         $refreshToken = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
 

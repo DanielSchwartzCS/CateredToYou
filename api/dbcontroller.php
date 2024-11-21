@@ -33,4 +33,19 @@ class DBController {
         $this->conn = null;
     }
 }
+
+function executeQuery($query, $params = [], $fetchMethod = PDO::FETCH_ASSOC) {
+    $db = new DBController();
+    try {
+        $stmt = $db->conn->prepare($query);
+        $stmt->execute($params);
+    }
+    catch(PDOException $e) {
+        respondWithError("Failure to execute sql statement: " . $e->getMessage(), 500);
+    }
+    return $fetchMethod == PDO::FETCH_ASSOC
+        ? $stmt->fetchAll(PDO::FETCH_ASSOC)
+        : $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 ?>
