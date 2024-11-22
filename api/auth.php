@@ -3,6 +3,7 @@ require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
 require_once 'auth.php';
+require_once 'token.php';
 
 function handleRequest($method, $segments) {
     if ($method !== 'POST') {
@@ -36,7 +37,7 @@ function login() {
     }
 
     $userData = executeSelect("SELECT user_id, password_hash, role FROM users WHERE username = :username",
-        [':username' => $username]);
+        [':username' => $username])[0];
     if (password_verify($password, $userData['password_hash'])) {
         $jwt = generateJwt($userData['user_id'], $userData['role']);
 
