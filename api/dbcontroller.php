@@ -34,18 +34,33 @@ class DBController {
     }
 }
 
-function executeQuery($query, $params = [], $fetchMethod = PDO::FETCH_ASSOC) {
+function executeSelect($query, $params = [], $fetchMethod = PDO::FETCH_ASSOC) {
     $db = new DBController();
     try {
         $stmt = $db->conn->prepare($query);
         $stmt->execute($params);
     }
     catch(PDOException $e) {
-        respondWithError("Failure to execute sql statement: " . $e->getMessage(), 500);
+        respondWithError("Failure to execute SELECT query: " . $e->getMessage(), 500);
     }
     return $fetchMethod == PDO::FETCH_ASSOC
         ? $stmt->fetchAll(PDO::FETCH_ASSOC)
         : $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+function executeInsert($query, $params = []) {
+    $db = new DBController();
+    try {
+        $stmt = $db->conn->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt->rowCount() > 0;
+    }
+    catch(PDOException $e) {
+        respondWithError("Failure to execute INSERT query: " . $e->getMessage(), 500);
+    }
+    return false;
+}
+
 
 ?>

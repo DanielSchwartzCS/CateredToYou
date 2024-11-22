@@ -35,9 +35,8 @@ function login() {
         respondWithError("Username and password are required", 400);
     }
 
-    $userData = executeQuery("SELECT user_id, password_hash, role FROM users WHERE username = :username",
+    $userData = executeSelect("SELECT user_id, password_hash, role FROM users WHERE username = :username",
         [':username' => $username]);
-
     if (password_verify($password, $userData['password_hash'])) {
         $jwt = generateJwt($userData['user_id'], $userData['role']);
 

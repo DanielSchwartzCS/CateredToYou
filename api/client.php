@@ -60,7 +60,7 @@ function validateClientId($client_id) {
 }
 
 function checkClientExists($client_id) {
-    $result = executeQuery(
+    $result = executeSelect(
         "SELECT client_id FROM Clients WHERE client_id = :client_id",
         [':client_id' => $client_id]
     );
@@ -68,13 +68,13 @@ function checkClientExists($client_id) {
 }
 
 function getClients($segments) {
-    respondWithSuccess(200, "Clients retrieved successfully", executeQuery(
+    respondWithSuccess(200, "Clients retrieved successfully", executeSelect(
         "SELECT client_id, client_name, phone_number, email_address FROM Clients"
     ));
 }
 
 function getUpcomingEvents($segments) {
-    respondWithSuccess(200, "Clients with upcoming events retrieved successfully", executeQuery(
+    respondWithSuccess(200, "Clients with upcoming events retrieved successfully", executeSelect(
         "SELECT c.client_id, c.client_name, e.event_id, e.event_description
         FROM Clients c JOIN Events e ON c.client_id = e.client_id
         WHERE e.start_date > CURRENT_DATE"
@@ -86,7 +86,7 @@ function getMenuItems($segments) {
     if (empty($item_name)) {
         respondWithError("Menu item name is required", 400);
     }
-    respondWithSuccess(200, "Clients who requested $item_name retrieved successfully", executeQuery(
+    respondWithSuccess(200, "Clients who requested $item_name retrieved successfully", executeSelect(
         "SELECT c.client_id, c.client_name FROM Clients c JOIN Events e ON c.client_id = e.client_id
         JOIN EventMenu em ON e.event_id = em.event_id JOIN MenuItems m ON em.menu_item_id = m.menu_item_id
         WHERE m.item_name = :item_name", [':item_name' => $item_name]
@@ -98,7 +98,7 @@ function getClientsByEmailDomain($segments) {
     if (empty($domain)) {
         respondWithError("Email domain is required", 400);
     }
-    respondWithSuccess(200, "Clients with email domain $domain retrieved successfully", executeQuery(
+    respondWithSuccess(200, "Clients with email domain $domain retrieved successfully", executeSelect(
         "SELECT client_id, client_name, email_address FROM Clients WHERE email_address LIKE :domain",
         [':domain' => "%@$domain"]
     ));
@@ -112,7 +112,7 @@ function getClientEvents($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    respondWithSuccess(200, "Events for client $client_id retrieved successfully", executeQuery(
+    respondWithSuccess(200, "Events for client $client_id retrieved successfully", executeSelect(
         "SELECT event_id, event_description, start_date, end_date, event_status
         FROM Events WHERE client_id = :client_id", [':client_id' => $client_id]
     ));
@@ -126,7 +126,7 @@ function archiveClient($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    if (executeQuery(
+    if (executeSelect(
         "UPDATE Clients SET archived = TRUE WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {
@@ -146,7 +146,7 @@ function updateClientNotes($segments) {
     }
     $data = json_decode(file_get_contents("php://input"), true);
     $notes = $data['notes'] ?? '';
-    if (executeQuery(
+    if (executeSelect(
         "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
         [':notes' => $notes, ':client_id' => $client_id]
     )) {
@@ -160,7 +160,7 @@ function createClient($segments) {
     $data = json_decode(file_get_contents("php://input"), true);
     $db = new DBController();
     $newClientId = $db->conn->lastInsertId();
-    if (executeQuery(
+    if (executeInsert(
         "INSERT INTO Clients (client_name, phone_number, email_address, billing_address,
         preferred_contact_method, notes) VALUES (:client_name, :phone_number, :email_address,
         :billing_address, :preferred_contact_method, :notes)", [
@@ -189,7 +189,7 @@ function updateClientDetails($segments) {
     if (!validateClientData($data)) {
         respondWithError("Missing required client data", 400);
     }
-    if (executeQuery(
+    if (executeSelect(
         "UPDATE Clients SET client_name = :client_name, phone_number = :phone_number,
         email_address = :email_address, billing_address = :billing_address,
         preferred_contact_method = :preferred_contact_method, notes = :notes
@@ -216,7 +216,7 @@ function deleteClient($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    if (executeQuery(
+    if (executeSelect( //TODO: make executeDelete
         "DELETE FROM Clients WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {
