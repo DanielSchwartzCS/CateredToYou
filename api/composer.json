@@ -1,0 +1,8 @@
+{
+    "name": "cty/fire",
+    "description": "composer for cty project",
+    "type": "project",
+    "require": {
+        "kreait/laravel-firebase": "^5.9"
+    }
+}
