@@ -58,7 +58,7 @@ function refreshJwt($refreshToken) {
     markTokenAsExpired($refreshToken);
 
     // Return the new JWT and expiration time
-    respondWithSuccess(200, "Token refreshed successfully", [
+    return [
         "token" => $newJwt,
         "expiresAt" => date('Y-m-d H:i:s', time() + 3600)
     ]);
