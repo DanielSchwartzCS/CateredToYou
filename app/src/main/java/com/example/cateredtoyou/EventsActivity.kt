@@ -791,7 +791,7 @@ class EventsActivity : AppCompatActivity() {
 
         MaterialAlertDialogBuilder(this)
             .setView(dialogView)
-            .setTitle(R.string.add_client_title)
+//            .setTitle(R.string.add_client_title)
             .setPositiveButton(R.string.add) { dialog, _ ->
                 val firstname = dialogView.findViewById<EditText>(R.id.first_name).text.toString()
                 val lastname = dialogView.findViewById<EditText>(R.id.last_name).text.toString()

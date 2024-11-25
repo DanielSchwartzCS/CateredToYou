@@ -5,12 +5,20 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+
     <!-- Search View for filtering tasks -->
+    <Button
+        android:id="@+id/back_to_MainActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"/>
     <SearchView
         android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:queryHint="Search tasks" />
+        android:queryHint="Search tasks"
+        android:layout_margin="10dp"/>
+
 
     <!-- Task List View (RecyclerView) -->
     <androidx.recyclerview.widget.RecyclerView
@@ -19,29 +27,59 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Input field for task -->
-    <EditText
-        android:id="@+id/input_task"
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
-        android:hint="Enter task"
-        android:inputType="text" />
-
-    <!-- Add task button -->
-    <Button
-        android:id="@+id/add_task_button"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Add Task" />
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+        <Button
+            android:id="@+id/btnToday"
+            android:layout_width="130dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:text="Today"/>
+        <Button
+            android:id="@+id/btnThisWeek"
+            android:layout_width="130dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:text="This Week"/>
+        <Button
+            android:id="@+id/btnAllTasks"
+            android:layout_width="130dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:text="All Tasks"/>
+    </LinearLayout>
 
-    <!-- Back button -->
-    <Button
-        android:id="@+id/back_to_MainActivity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Back" />
+
+    <!--    <EditText-->
+    <!--        android:id="@+id/input_task"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="48dp"-->
+    <!--        android:layout_marginTop="24dp"-->
+    <!--        android:hint="Enter task"-->
+    <!--        android:inputType="text" />-->
+
+
+    <!--    &lt;!&ndash; Add task button &ndash;&gt;-->
+    <!--    <Button-->
+    <!--        android:id="@+id/add_task_button"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginTop="8dp"-->
+    <!--        android:text="Add Task" />-->
+
+
+    <!--    &lt;!&ndash; Back button &ndash;&gt;-->
+    <!--    <Button-->
+    <!--        android:id="@+id/back_to_MainActivity"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_marginTop="16dp"-->
+    <!--        android:text="Back" />-->
+
 
 </LinearLayout>

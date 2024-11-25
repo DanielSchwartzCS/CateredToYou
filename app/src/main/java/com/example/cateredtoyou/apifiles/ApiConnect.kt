@@ -2,6 +2,7 @@ package com.example.cateredtoyou.apifiles
 
 import android.util.Log
 import com.example.cateredtoyou.Client
+import com.example.cateredtoyou.TaskItem
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
@@ -34,6 +35,15 @@ interface ApiConnect {
     @POST("auth")
     fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
+    @Headers("Content-Type: application/json")
+    @GET("tasks")
+    fun getTasks(
+        @Query("filter") filter: String,
+    ): Call<List<TaskItem>>
+
+    @Headers("Content-Type: application/json")
+    @POST("updateTasks")
+    fun updateTasks(@Field("task_id") taskId: Int): Call<Void>
 
     @FormUrlEncoded
     @POST("add_employee.php")
@@ -42,6 +52,7 @@ interface ApiConnect {
         @Field("password") password: String
 
     ): Call<AddUserResponse>
+
 
 
     @GET("get_employees.php")
