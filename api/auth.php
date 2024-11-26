@@ -46,7 +46,7 @@ function login() {
         $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
         storeRefreshToken($userData['user_id'], $refreshToken, $expiresAt);
 
-        respondWithSuccess(200, "Login successful", ['jwt' => $jwt, 'refresh_token' => $refreshToken]);
+        respondWithSuccess("Login successful", 200, ['jwt' => $jwt, 'refresh_token' => $refreshToken]);
     } else {
         respondWithError("Invalid credentials", 401);
     }
@@ -70,7 +70,7 @@ function refresh() {
 
     $jwt = generateJwt($userData->userId, $userData->role);
 
-    respondWithSuccess(200, "JWT refreshed successfully", ['jwt' => $jwt]);
+    respondWithSuccess("JWT refreshed successfully", 200, ['jwt' => $jwt]);
 }
 
 // Handle logout: mark the refresh token as expired
@@ -85,7 +85,7 @@ function logout() {
     // Mark the refresh token as expired in the database
     markTokenAsExpired($refreshToken);
 
-    respondWithSuccess(200, "Logged out successfully");
+    respondWithSuccess("Logged out successfully", 200);
 }
 
 ?>

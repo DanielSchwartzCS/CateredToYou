@@ -23,7 +23,7 @@ function respondWithError($message, $code = 400) {
  *                         If provided, this data will be added under the "data" key.
  * @return void
  */
-function respondWithSuccess($statusCode, $message, $data = null) {
+function respondWithSuccess($message, $statusCode, $data = null) {
     http_response_code($statusCode);
     $response = ["status" => true, "message" => $message];
     if ($data !== null) {

@@ -31,10 +31,10 @@ function fetchTasks() {
                 "SELECT * FROM tasks
                 WHERE due_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL :prep_window DAY)",
                 [':prep_window' => $prep_window]);
-            respondWithSuccess(200, "Tasks within prep window retrieved", $response);
+            respondWithSuccess("Tasks within prep window retrieved", 200, $response);
         } else {
             $response = executeSelect("SELECT * FROM tasks");
-            respondWithSuccess(200, "All tasks retrieved", $response);
+            respondWithSuccess("All tasks retrieved", 200, $response);
         }
     } catch (Exception $e) {
         respondWithError("Failed to fetch tasks: " . $e->getMessage(), 500);

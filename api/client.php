@@ -68,13 +68,13 @@ function checkClientExists($client_id) {
 }
 
 function getClients($segments) {
-    respondWithSuccess(200, "Clients retrieved successfully", executeSelect(
+    respondWithSuccess("Clients retrieved successfully", 200,  executeSelect(
         "SELECT client_id, client_name, phone_number, email_address FROM Clients"
     ));
 }
 
 function getUpcomingEvents($segments) {
-    respondWithSuccess(200, "Clients with upcoming events retrieved successfully", executeSelect(
+    respondWithSuccess("Clients with upcoming events retrieved successfully", 200, executeSelect(
         "SELECT c.client_id, c.client_name, e.event_id, e.event_description
         FROM Clients c JOIN Events e ON c.client_id = e.client_id
         WHERE e.start_date > CURRENT_DATE"
@@ -86,7 +86,7 @@ function getMenuItems($segments) {
     if (empty($item_name)) {
         respondWithError("Menu item name is required", 400);
     }
-    respondWithSuccess(200, "Clients who requested $item_name retrieved successfully", executeSelect(
+    respondWithSuccess("Clients who requested $item_name retrieved successfully", 200, executeSelect(
         "SELECT c.client_id, c.client_name FROM Clients c JOIN Events e ON c.client_id = e.client_id
         JOIN EventMenu em ON e.event_id = em.event_id JOIN MenuItems m ON em.menu_item_id = m.menu_item_id
         WHERE m.item_name = :item_name", [':item_name' => $item_name]
@@ -98,7 +98,7 @@ function getClientsByEmailDomain($segments) {
     if (empty($domain)) {
         respondWithError("Email domain is required", 400);
     }
-    respondWithSuccess(200, "Clients with email domain $domain retrieved successfully", executeSelect(
+    respondWithSuccess("Clients with email domain $domain retrieved successfully", 200, executeSelect(
         "SELECT client_id, client_name, email_address FROM Clients WHERE email_address LIKE :domain",
         [':domain' => "%@$domain"]
     ));
@@ -112,7 +112,7 @@ function getClientEvents($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    respondWithSuccess(200, "Events for client $client_id retrieved successfully", executeSelect(
+    respondWithSuccess("Events for client $client_id retrieved successfully", 200, executeSelect(
         "SELECT event_id, event_description, start_date, end_date, event_status
         FROM Events WHERE client_id = :client_id", [':client_id' => $client_id]
     ));
@@ -130,7 +130,7 @@ function archiveClient($segments) {
         "UPDATE Clients SET archived = TRUE WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {
-        respondWithSuccess(200, "Client archived successfully");
+        respondWithSuccess("Client archived successfully", 200);
     } else {
         respondWithError("Error archiving client", 500);
     }
@@ -150,7 +150,7 @@ function updateClientNotes($segments) {
         "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
         [':notes' => $notes, ':client_id' => $client_id]
     )) {
-        respondWithSuccess(200, "Client notes updated successfully");
+        respondWithSuccess("Client notes updated successfully", 200);
     } else {
         respondWithError("Error updating client notes", 500);
     }
@@ -171,7 +171,7 @@ function createClient($segments) {
         ':preferred_contact_method' => $data['preferred_contact_method'],
         ':notes' => $data['notes']
     ])) {
-        respondWithSuccess(201, "Client created successfully with ID: $newClientId");
+        respondWithSuccess("Client created successfully with ID: $newClientId", 201);
     } else {
         respondWithError("Error creating client", 500);
     }
@@ -202,7 +202,7 @@ function updateClientDetails($segments) {
         ':notes' => $data['notes'],
         ':client_id' => $client_id
     ])) {
-        respondWithSuccess(200, "Client updated successfully");
+        respondWithSuccess("Client updated successfully", 200);
     } else {
         respondWithError("Error updating client", 500);
     }
@@ -220,7 +220,7 @@ function deleteClient($segments) {
         "DELETE FROM Clients WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {
-        respondWithSuccess(200, "Client deleted successfully");
+        respondWithSuccess("Client deleted successfully", 200);
     } else {
         respondWithError("Error deleting client", 500);
     }
