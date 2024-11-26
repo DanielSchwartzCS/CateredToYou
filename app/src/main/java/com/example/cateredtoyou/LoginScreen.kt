@@ -65,7 +65,7 @@ class LoginScreen : AppCompatActivity() {
 
             val loginRequest = LoginRequest(username, password)
 
-            DatabaseApi.retrofitService.loginCheck(loginRequest).enqueue(object : Callback<LoginResponse> {
+            DatabaseApi.retrofitService.loginCheck2(username, password).enqueue(object : Callback<LoginResponse> {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     Log.d("LoginScreen", "Response received - Code: ${response.code()}")
                     Log.d("LoginScreen", "Response headers: ${response.headers()}")

@@ -22,7 +22,7 @@ import retrofit2.http.Query
 
 
 // Url for the AWS web server
-private const val BASE_URL = "http://54.219.249.27/"
+private const val BASE_URL = "http://54.215.252.172/"
 
 // Lots of functions to connect to an api that returns a json file
 private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
@@ -35,15 +35,14 @@ interface ApiConnect {
     @POST("auth")
     fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
-    @Headers("Content-Type: application/json")
-    @GET("tasks")
-    fun getTasks(
-        @Query("filter") filter: String,
-    ): Call<List<TaskItem>>
+    @FormUrlEncoded
+    @POST("login2.php")
+    fun loginCheck2(
+        @Field("username") username: String,
+        @Field("password") password: String
 
-    @Headers("Content-Type: application/json")
-    @POST("updateTasks")
-    fun updateTasks(@Field("task_id") taskId: Int): Call<Void>
+    ): Call<LoginResponse>
+
 
     @FormUrlEncoded
     @POST("add_employee.php")
@@ -53,6 +52,12 @@ interface ApiConnect {
 
     ): Call<AddUserResponse>
 
+    @GET("get_tasks.php")
+    fun getTasks(@Query("filter") filter: String): Call<List<TaskItem>>
+
+    @FormUrlEncoded
+    @POST("update_task_status.php")
+    fun updateTasks(@Field("task_id") taskId: Int): Call<Void>
 
 
     @GET("get_employees.php")

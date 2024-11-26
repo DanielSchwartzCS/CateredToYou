@@ -2,6 +2,7 @@ package com.example.cateredtoyou
 
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,7 +24,8 @@ class TaskView : AppCompatActivity() {
     private lateinit var adapter: TaskAdapter
     private lateinit var searchView: SearchView
     private val taskList = ArrayList<TaskItem>()
-    private lateinit var filteredTaskList: ArrayList<TaskItem>
+    private val allTaskList = ArrayList<TaskItem>()
+    private var filteredTaskList: MutableList<TaskItem> = mutableListOf()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,14 +39,13 @@ class TaskView : AppCompatActivity() {
             finish() // Close the current activity and return to Dashboard
         }
 
-
         // Initialize views
         taskRecyclerView = findViewById(R.id.todo_list_view)
         searchView = findViewById(R.id.search_view)
 
 
         // Initialize RecyclerView and Adapter
-        adapter = TaskAdapter(taskList, this::onComplete)
+        adapter = TaskAdapter(filteredTaskList, this::onComplete)
         taskRecyclerView.adapter = adapter
         taskRecyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -92,6 +93,7 @@ class TaskView : AppCompatActivity() {
 
 
             override fun onFailure(call: Call<List<TaskItem>>, t: Throwable) {
+                Log.e("API_ERROR", t.toString())
                 Toast.makeText(this@TaskView, "Completely Failed to load tasks", Toast.LENGTH_SHORT).show()
             }
         })

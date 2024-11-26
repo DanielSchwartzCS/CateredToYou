@@ -21,11 +21,15 @@ import android.widget.LinearLayout
 
 
 class TaskAdapter(
-    private val tasks: List<TaskItem>,
+    private val tasks: MutableList<TaskItem>,
     private val onComplete: (Int) -> Unit
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>(){
 
-
+    fun updateTasks(newTasks: List<TaskItem>) {
+        tasks.clear()
+        tasks.addAll(newTasks)
+        notifyDataSetChanged()
+    }
 
 
 
