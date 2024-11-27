@@ -4,32 +4,33 @@ require_once 'jwt.php';
 
 // Function to store a refresh token in the database
 function storeRefreshToken($userId, $token, $expiresAt) {
-    // Cleanup expired tokens
-    executeSelect("UPDATE refresh_tokens SET is_expired = TRUE WHERE expires_at < NOW()");
+    markTokenAsExpired($token);
 
     // Insert new refresh token
-    $insertSuccess = executeInsert("INSERT INTO refresh_tokens (user_id, token, expires_at, usage_count) VALUES (:user_id, :token, :expires_at, 0)", [
+    if (!executeChange("INSERT INTO refresh_tokens (user_id, token, expires_at, usage_count) VALUES (:user_id, :token, :expires_at, 0)", [
         ':user_id' => $userId,
         ':token' => $token,
         ':expires_at' => $expiresAt
-    ]);
-
-    if ($insertSuccess) {
-        respondWithSuccess("Token stored", 200);
-    } else {
+    ])) {
         respondWithError("Failed to store token:", 500);
     }
+
+    respondWithSuccess("Token stored", 200);
 }
+
 
 // Function to mark a refresh token as expired
 function markTokenAsExpired($token) {
-    return executeSelect("UPDATE refresh_tokens SET is_expired = TRUE WHERE token = :token", [':token' => $token]) > 0;
+    if (!executeChange("UPDATE refresh_tokens SET is_expired = TRUE WHERE token = :token", [':token' => $token])) {
+        respondWithError("Failed to mark token as expired:", 500);
+    }
 }
+
 
 // Function to validate and refresh JWT based on refresh token
 function refreshJwt($refreshToken) {
     $tokenData = executeSelect("SELECT user_id, expires_at, usage_count FROM refresh_tokens WHERE token = :token AND is_expired = FALSE",
-        [':token' => $refreshToken]);
+        [':token' => $refreshToken], false);
 
     if (!$tokenData) {
         respondWithError("Invalid or expired refresh token.", 401);
@@ -44,8 +45,8 @@ function refreshJwt($refreshToken) {
         respondWithError("Refresh token has reached its usage limit.", 403);
     }
 
-    executeSelect("UPDATE refresh_tokens SET usage_count = usage_count + 1 WHERE token = :token", [':token' => $refreshToken]);
-    $user = executeSelect("SELECT role FROM users WHERE user_id = :user_id", [':user_id' => $tokenData['user_id']]);
+    executeChange("UPDATE refresh_tokens SET usage_count = usage_count + 1 WHERE token = :token", [':token' => $refreshToken]);
+    $user = executeSelect("SELECT role FROM users WHERE user_id = :user_id", [':user_id' => $tokenData['user_id']], false);
 
     if (!$user) {
         respondWithError("User not found.", 404);
@@ -61,7 +62,7 @@ function refreshJwt($refreshToken) {
     return [
         "token" => $newJwt,
         "expiresAt" => date('Y-m-d H:i:s', time() + 3600)
-    ]);
+    ];
 }
 
 // Function to validate the authorization header and extract user data

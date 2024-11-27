@@ -19,6 +19,7 @@ function handleRequest($method, $segments) {
 }
 
 // Fetch events or a specific event by ID
+// Fetch events
 function fetchEvents($segments) {
     $eventId = $segments[0] ?? null;
 
@@ -26,16 +27,16 @@ function fetchEvents($segments) {
         if ($eventId) {
             $query = "SELECT * FROM events WHERE event_id = :event_id";
             $params = [':event_id' => $eventId];
-            $result = executeSelect($query, $params);
+            $result = executeSelect($query, $params, false);
 
             if (!$result) {
                 respondWithError("Event not found", 404);
             } else {
-                respondWithSuccess("Event retrieved successfully", 200, $result[0]);
+                respondWithSuccess("Event retrieved successfully", 200, $result);
             }
         } else {
             $query = "SELECT * FROM events";
-            $result = executeSelect($query);
+            $result = executeSelect($query);  // Fetch all rows
 
             respondWithSuccess("Events retrieved successfully", 200, $result);
         }
@@ -140,4 +141,5 @@ function deleteEvent($segments) {
         respondWithError("Failed to delete event: " . $e->getMessage(), 500);
     }
 }
+
 ?>

@@ -37,7 +37,7 @@ function login() {
     }
 
     $userData = executeSelect("SELECT user_id, password_hash, role FROM users WHERE username = :username",
-        [':username' => $username])[0];
+            [':username' => $username], false);
     if (password_verify($password, $userData['password_hash'])) {
         $jwt = generateJwt($userData['user_id'], $userData['role']);
 

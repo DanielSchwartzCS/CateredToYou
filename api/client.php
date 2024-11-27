@@ -62,7 +62,8 @@ function validateClientId($client_id) {
 function checkClientExists($client_id) {
     $result = executeSelect(
         "SELECT client_id FROM Clients WHERE client_id = :client_id",
-        [':client_id' => $client_id]
+        [':client_id' => $client_id],
+        false
     );
     return !empty($result);
 }
@@ -126,7 +127,7 @@ function archiveClient($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    if (executeSelect(
+    if (executeChange(
         "UPDATE Clients SET archived = TRUE WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {
@@ -146,7 +147,7 @@ function updateClientNotes($segments) {
     }
     $data = json_decode(file_get_contents("php://input"), true);
     $notes = $data['notes'] ?? '';
-    if (executeSelect(
+    if (executeChange(
         "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
         [':notes' => $notes, ':client_id' => $client_id]
     )) {
@@ -159,8 +160,7 @@ function updateClientNotes($segments) {
 function createClient($segments) {
     $data = json_decode(file_get_contents("php://input"), true);
     $db = new DBController();
-    $newClientId = $db->conn->lastInsertId();
-    if (executeInsert(
+    if (executeChange(
         "INSERT INTO Clients (client_name, phone_number, email_address, billing_address,
         preferred_contact_method, notes) VALUES (:client_name, :phone_number, :email_address,
         :billing_address, :preferred_contact_method, :notes)", [
@@ -171,6 +171,7 @@ function createClient($segments) {
         ':preferred_contact_method' => $data['preferred_contact_method'],
         ':notes' => $data['notes']
     ])) {
+        $newClientId = $db->conn->lastInsertId();
         respondWithSuccess("Client created successfully with ID: $newClientId", 201);
     } else {
         respondWithError("Error creating client", 500);
@@ -189,7 +190,7 @@ function updateClientDetails($segments) {
     if (!validateClientData($data)) {
         respondWithError("Missing required client data", 400);
     }
-    if (executeSelect(
+    if (executeChange(
         "UPDATE Clients SET client_name = :client_name, phone_number = :phone_number,
         email_address = :email_address, billing_address = :billing_address,
         preferred_contact_method = :preferred_contact_method, notes = :notes
@@ -216,7 +217,7 @@ function deleteClient($segments) {
     if (!checkClientExists($client_id)) {
         respondWithError("Client not found", 404);
     }
-    if (executeSelect( //TODO: make executeDelete
+    if (executeChange(
         "DELETE FROM Clients WHERE client_id = :client_id",
         [':client_id' => $client_id]
     )) {

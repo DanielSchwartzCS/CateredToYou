@@ -5,7 +5,7 @@ require_once 'response.php';
 function handleRequest($method, $segments) {
     if ($method === 'GET') {
         $routeHandlers = [
-            '' => 'fetchMenuItems', // Default route for fetching all menu items
+            '' => 'fetchEventMenu', // Default route for fetching all menu items
             'event' => 'fetchEventMenuItems', // Fetch menu items by event ID
         ];
     } elseif ($method === 'POST') {
@@ -22,7 +22,6 @@ function handleRequest($method, $segments) {
         ];
     } else {
         respondWithError("Method not allowed", 405);
-        return;
     }
 
     $route = implode('/', $segments);
@@ -38,6 +37,7 @@ function handleRequest($method, $segments) {
 // Fetch all menu items
 function fetchMenuItems() {
     try {
+        // Fetch all menu items from the database
         $menuItems = executeSelect("SELECT * FROM menu_items");
         respondWithSuccess("Menu items retrieved", 200, $menuItems);
     } catch (Exception $e) {
@@ -45,16 +45,15 @@ function fetchMenuItems() {
     }
 }
 
-// Fetch menu items for a specific event
 function fetchEventMenuItems($segments) {
     $eventId = $segments[1] ?? null;
 
     if (empty($eventId)) {
         respondWithError("Event ID is required", 400);
-        return;
     }
 
     try {
+        // Fetch menu items associated with a specific event
         $menuItems = executeSelect(
             "SELECT mi.* FROM menu_items mi
             JOIN event_menu em ON mi.item_id = em.item_id
@@ -67,7 +66,6 @@ function fetchEventMenuItems($segments) {
     }
 }
 
-// Create a new menu item
 function createMenuItem() {
     $data = json_decode(file_get_contents("php://input"), true);
     $name = $data['name'] ?? '';
@@ -76,10 +74,10 @@ function createMenuItem() {
 
     if (empty($name) || empty($description)) {
         respondWithError("Menu item name and description are required", 400);
-        return;
     }
 
     try {
+        // Insert new menu item into the database
         $result = executeChange(
             "INSERT INTO menu_items (name, description, price) VALUES (:name, :description, :price)",
             [':name' => $name, ':description' => $description, ':price' => $price]
@@ -95,14 +93,12 @@ function createMenuItem() {
     }
 }
 
-// Update a menu item
 function updateMenuItem($segments) {
     $itemId = $segments[1] ?? null;
     $data = json_decode(file_get_contents("php://input"), true);
 
     if (empty($itemId) || empty($data)) {
         respondWithError("Menu item ID and data are required", 400);
-        return;
     }
 
     $name = $data['name'] ?? null;
@@ -129,10 +125,10 @@ function updateMenuItem($segments) {
 
     if (empty($updateFields)) {
         respondWithError("No data to update", 400);
-        return;
     }
 
     try {
+        // Update menu item in the database
         $query = "UPDATE menu_items SET " . implode(", ", $updateFields) . " WHERE item_id = :item_id";
         $result = executeChange($query, $params);
 
@@ -146,16 +142,15 @@ function updateMenuItem($segments) {
     }
 }
 
-// Delete a menu item
 function deleteMenuItem($segments) {
     $itemId = $segments[1] ?? null;
 
     if (empty($itemId)) {
         respondWithError("Menu item ID is required", 400);
-        return;
     }
 
     try {
+        // Delete menu item from the database
         $result = executeChange(
             "DELETE FROM menu_items WHERE item_id = :item_id",
             [':item_id' => $itemId]
