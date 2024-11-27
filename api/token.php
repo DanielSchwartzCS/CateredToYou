@@ -14,8 +14,6 @@ function storeRefreshToken($userId, $token, $expiresAt) {
     ])) {
         respondWithError("Failed to store token:", 500);
     }
-
-    respondWithSuccess("Token stored", 200);
 }
 
 // Function to expire old refresh tokens for a user
