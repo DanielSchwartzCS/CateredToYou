@@ -10,7 +10,6 @@ header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, Authorization');
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-$uri = str_replace('/php', '', $uri);
 $segments = explode('/', trim($uri, '/'));
 $method = $_SERVER['REQUEST_METHOD'];
 
