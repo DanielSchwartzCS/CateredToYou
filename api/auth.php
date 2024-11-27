@@ -8,7 +8,6 @@ require_once 'token.php';
 function handleRequest($method, $segments) {
     if ($method !== 'POST') {
         respondWithError("Method not allowed", 405);
-        return;
     }
 
     $routeHandlers = [

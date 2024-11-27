@@ -4,8 +4,8 @@ require_once 'jwt.php';
 
 // Function to store a refresh token in the database
 function storeRefreshToken($userId, $token, $expiresAt) {
-    markTokenAsExpired($token);
-
+    // Expire the old tokens
+    expireOldTokens($userId)
     // Insert new refresh token
     if (!executeChange("INSERT INTO refresh_tokens (user_id, token, expires_at, usage_count) VALUES (:user_id, :token, :expires_at, 0)", [
         ':user_id' => $userId,
@@ -18,6 +18,14 @@ function storeRefreshToken($userId, $token, $expiresAt) {
     respondWithSuccess("Token stored", 200);
 }
 
+// Function to expire old refresh tokens for a user
+function expireOldTokens($userId) {
+    if (!executeChange("UPDATE refresh_tokens SET is_expired = TRUE WHERE user_id = :user_id AND is_expired = FALSE", [
+        ':user_id' => $userId
+    ])) {
+        respondWithError("Failed to expire old tokens:", 500);
+    }
+}
 
 // Function to mark a refresh token as expired
 function markTokenAsExpired($token) {
