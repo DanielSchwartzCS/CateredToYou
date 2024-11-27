@@ -5,7 +5,7 @@ require_once 'jwt.php';
 // Function to store a refresh token in the database
 function storeRefreshToken($userId, $token, $expiresAt) {
     // Expire the old tokens
-    expireOldTokens($userId)
+    expireOldTokens($userId);
     // Insert new refresh token
     if (!executeChange("INSERT INTO refresh_tokens (user_id, token, expires_at, usage_count) VALUES (:user_id, :token, :expires_at, 0)", [
         ':user_id' => $userId,
