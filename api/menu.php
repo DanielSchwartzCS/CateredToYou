@@ -127,7 +127,7 @@ function deleteMenuItem($segments) {
         if ($result) {
             respondWithSuccess(200, "Menu item deleted successfully");
         } else {
-            respondWithError("Menu item not found", 404);
+            respondWithError("Menu item not found", 204);
         }
     } catch (Exception $e) {
         respondWithError("Failed to delete menu item: " . $e->getMessage(), 500);

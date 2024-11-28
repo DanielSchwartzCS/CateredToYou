@@ -90,7 +90,7 @@ function updateInventoryQuantity($segments) {
         [':inventory_id' => $inventory_id], false);
 
     if (!$currentQuantity) {
-        respondWithError("Inventory item not found", 400);
+        respondWithError("Inventory item $inventory_id not found", 204);
     }
 
     // Update the inventory quantity

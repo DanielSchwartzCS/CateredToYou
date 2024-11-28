@@ -20,13 +20,13 @@ if (!isset($routes[$resource])) {
 }
 
 if (!isset($routes[$resource][$method])) {
-    respondWithError("Method not allowed for resource: $resource", 405);
+    respondWithError("HTTP Method not allowed for resource: $resource", 405);
 }
 
 if (isset($routes[$resource][$method][$segments[0]])) {
     $function = $routes[$resource][$method][$segments[0]];
 } else {
-    respondWithError("HTTP method not allowed for resource: $resource", 405);
+    respondWithError("Sub-route not defined in resource: $resource", 405);
 }
 
 require_once "$resource.php";

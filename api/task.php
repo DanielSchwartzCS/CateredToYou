@@ -46,7 +46,7 @@ function updateStatus($segments) {
     $currentStatus = executeSelect("SELECT status FROM tasks WHERE task_id = :task_id",
         [':task_id' => $task_id], false);
     if (!$currentStatus) {
-        respondWithError("Task $task_id not found", 400);
+        respondWithError("Task $task_id not found", 204);
     }
 
     if (!executeChange("UPDATE tasks SET status = :status WHERE task_id = :task_id",
