@@ -2,26 +2,6 @@
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
-function handleRequest($method, $segments) {
-    if ($method !== 'GET') {
-        respondWithError("Method not allowed", 405);
-    }
-
-    // Map routes to handlers
-    $routeHandlers = [
-        '' => 'fetchTasks' // Default route handles tasks fetching
-    ];
-
-    $route = implode('/', $segments);
-
-    if (isset($routeHandlers[$route])) {
-        $handlerFunction = $routeHandlers[$route];
-        $handlerFunction();
-    } else {
-        respondWithError("Route not found", 404);
-    }
-}
-
 function fetchTasks() {
     $prep_window = $_GET['prep_window'] ?? null;
 

@@ -1,6 +1,6 @@
 <?php
-// echo ("in router");
 require_once 'response.php';
+require_once 'routes.php';  // Include the routes configuration
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -8,27 +8,32 @@ header("Access-Control-Allow-Credentials: true");
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, Authorization');
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-$segments = explode('/', trim($uri, '/'));
+$uri = trim($_SERVER['REQUEST_URI'], '/');
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Get the first segment as the target file
-$file = array_shift($segments);
-$filePath = "{$file}.php";
+$segments = explode('/', $uri);
+$resource = array_shift($segments);
 
-//die("Requested URI: " . $uri . " ---  File path: " . $filePath);
-
-// Check if the file exists
-if (file_exists($filePath)) {
-    require $filePath;
-    // Call handleRequest in the file with the remaining segments
-    if (function_exists('handleRequest')) {
-        handleRequest($method, $segments);
-    } else {
-        respondWithError("Handler function not found in $filePath", 500);
-    }
-} else {
-    respondWithError($filePath . " not found", 404);
+if (!isset($routes[$resource])) {
+    respondWithError("Resource not found: $resource", 404);
 }
+
+if (!isset($routes[$resource][$method])) {
+    respondWithError("Method not allowed for resource: $resource", 405);
+}
+
+if (isset($routes[$resource][$method][$segments[0]])) {
+    $function = $routes[$resource][$method][$segments[0]];
+} else {
+    respondWithError("HTTP method not allowed for resource: $resource", 405);
+}
+
+require_once "$resource.php";
+
+if (!function_exists($function)) {
+    respondWithError("Function does not exist in resource: $resource", 405);
+}
+
+$function($segments);
 ?>

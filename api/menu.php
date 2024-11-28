@@ -2,38 +2,6 @@
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
-function handleRequest($method, $segments) {
-    if ($method === 'GET') {
-        $routeHandlers = [
-            '' => 'fetchEventMenu', // Default route for fetching all menu items
-            'event' => 'fetchEventMenuItems', // Fetch menu items by event ID
-        ];
-    } elseif ($method === 'POST') {
-        $routeHandlers = [
-            '' => 'createMenuItem', // Create a new menu item
-        ];
-    } elseif ($method === 'PUT') {
-        $routeHandlers = [
-            '' => 'updateMenuItem', // Update an existing menu item
-        ];
-    } elseif ($method === 'DELETE') {
-        $routeHandlers = [
-            '' => 'deleteMenuItem', // Delete an existing menu item
-        ];
-    } else {
-        respondWithError("Method not allowed", 405);
-    }
-
-    $route = implode('/', $segments);
-
-    if (isset($routeHandlers[$route])) {
-        $handlerFunction = $routeHandlers[$route];
-        $handlerFunction($segments);
-    } else {
-        respondWithError("Route not found", 404);
-    }
-}
-
 // Fetch all menu items
 function fetchMenuItems() {
     try {

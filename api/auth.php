@@ -2,31 +2,10 @@
 require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
-require_once 'auth.php';
 require_once 'token.php';
 
-function handleRequest($method, $segments) {
-    if ($method !== 'POST') {
-        respondWithError("Method not allowed", 405);
-    }
-
-    $routeHandlers = [
-        '' => 'login',
-        'refresh' => 'refresh',
-        'logout' => 'logout'
-    ];
-
-    $route = implode('/', $segments);
-    if (isset($routeHandlers[$route])) {
-        $handlerFunction = $routeHandlers[$route];
-        $handlerFunction();
-    } else {
-        respondWithError("Route not found", 404);
-    }
-}
-
 // Handle login: authenticate user and return JWT
-function login() {
+function login($segments) {
     $data = json_decode(file_get_contents("php://input"), true);
     $username = $data['username'] ?? '';
     $password = $data['password'] ?? '';
@@ -37,7 +16,7 @@ function login() {
 
     $userData = executeSelect("SELECT user_id, password_hash, role FROM users WHERE username = :username",
             [':username' => $username], false);
-    if (password_verify($password, $userData['password_hash'])) {
+    if ($userData && password_verify($password, $userData['password_hash'])) {
         $jwt = generateJwt($userData['user_id'], $userData['role']);
 
         // Create and store refresh token
@@ -52,7 +31,7 @@ function login() {
 }
 
 // Handle refresh: validate refresh token and return new JWT
-function refresh() {
+function refresh($segments) {
     $data = json_decode(file_get_contents("php://input"), true);
     $refreshToken = $data['refresh_token'] ?? '';
 
@@ -73,7 +52,7 @@ function refresh() {
 }
 
 // Handle logout: mark the refresh token as expired
-function logout() {
+function logout($segments) {
     $data = json_decode(file_get_contents("php://input"), true);
     $refreshToken = $data['refresh_token'] ?? '';
 

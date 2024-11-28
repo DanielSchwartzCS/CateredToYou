@@ -2,24 +2,7 @@
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
-function handleRequest($method, $segments) {
-    $routeHandlers = [
-        'GET' => 'fetchEvents',
-        'POST' => 'createEvent',
-        'PUT' => 'updateEvent',
-        'DELETE' => 'deleteEvent'
-    ];
-
-    if (isset($routeHandlers[$method])) {
-        $handlerFunction = $routeHandlers[$method];
-        $handlerFunction($segments);
-    } else {
-        respondWithError("Method not allowed", 405);
-    }
-}
-
 // Fetch events or a specific event by ID
-// Fetch events
 function fetchEvents($segments) {
     $eventId = $segments[0] ?? null;
 

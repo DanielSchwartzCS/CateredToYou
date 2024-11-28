@@ -4,57 +4,6 @@ require_once 'response.php';
 require_once 'jwt.php';
 require_once 'auth.php';
 
-function handleRequest($method, $segments) {
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-    $userData = validateAuthorization($authHeader);
-
-    if (!$userData) {
-        respondWithError("Authorization header missing or malformed", 401);
-    }
-
-    $userRole = $userData->role;
-    $activeUserId = $userData->userId;
-
-    if ($userRole !== 'caterer') {
-        respondWithError("Unauthorized access", 403);
-    }
-
-    // Map routes to their handlers
-    $routeHandlers = [
-        'GET' => [
-            '' => 'getClients',
-            'upcoming-events' => 'getUpcomingEvents',
-            'menu-items' => 'getMenuItems',
-            'email-domain' => 'getClientsByEmailDomain',
-            'events' => 'getClientEvents'
-        ],
-        'POST' => [
-            'archive' => 'archiveClient',
-            'notes' => 'updateClientNotes',
-            '' => 'createClient'
-        ],
-        'PUT' => [
-            '{client_id}' => 'updateClientDetails'
-        ],
-        'DELETE' => [
-            '{client_id}' => 'deleteClient'
-        ]
-    ];
-
-    if (isset($routeHandlers[$method])) {
-        array_shift($segments);
-        $route = implode('/', $segments);
-        if (isset($routeHandlers[$method][$route])) {
-            $handlerFunction = $routeHandlers[$method][$route];
-            $handlerFunction($segments);
-        } else {
-            respondWithError("Route not found", 404);
-        }
-    } else {
-        respondWithError("Method not allowed", 405);
-    }
-}
-
 function validateClientId($client_id) {
     return is_numeric($client_id) && $client_id > 0;
 }
