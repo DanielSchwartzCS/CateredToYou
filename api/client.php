@@ -18,19 +18,85 @@ function checkClientExists($client_id) {
 }
 
 function getClients($segments) {
-    respondWithSuccess("Clients retrieved successfully", 200,  executeSelect(
-        "SELECT client_id, client_name, phone_number, email_address FROM Clients"
-    ));
+    respondWithSuccess("Clients retrieved successfully", 200,
+        executeSelect("SELECT * FROM Clients"));
 }
 
 function getUpcomingEvents($segments) {
-    respondWithSuccess("Clients with upcoming events retrieved successfully", 200, executeSelect(
+    respondWithSuccess("Clients with upcoming events retrieved successfully", 200,
+        executeSelect(
         "SELECT c.client_id, c.client_name, e.event_id, e.event_description
         FROM Clients c JOIN Events e ON c.client_id = e.client_id
         WHERE e.start_date > CURRENT_DATE"
     ));
 }
 
+function updateClientNotes($segments) {
+    $client_id = $segments[1];
+    if (!validateClientId($client_id)) {
+        respondWithError("Invalid client ID", 400);
+    }
+    if (!checkClientExists($client_id)) {
+        respondWithError("Client not found", 404);
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    $notes = $data['notes'] ?? '';
+    if (!executeChange(
+        "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
+        [':notes' => $notes, ':client_id' => $client_id])) {
+        respondWithError("Failed to update client notes", 400);
+        }
+}
+
+function createClient($segments) {
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (executeChange(
+        "INSERT INTO Clients (client_name, phone_number, email_address, billing_address,
+        preferred_contact_method, notes) VALUES (:client_name, :phone_number, :email_address,
+        :billing_address, :preferred_contact_method, :notes)", [
+        ':client_name' => $data['client_name'],
+        ':phone_number' => $data['phone_number'],
+        ':email_address' => $data['email_address'],
+        ':billing_address' => $data['billing_address'],
+        ':preferred_contact_method' => $data['preferred_contact_method'],
+        ':notes' => $data['notes']
+    ]) {
+        $newClientId = $db->conn->lastInsertId();
+        respondWithSuccess("Client created successfully with ID: $newClientId", 201);
+    } else {
+        respondWithError("Client was not created", 400);
+    }
+}
+
+function updateClientDetails($segments) {
+    $client_id = $segments[0];
+    if (!validateClientId($client_id)) {
+        respondWithError("Invalid client ID", 400);
+    }
+    if (!checkClientExists($client_id)) {
+        respondWithError("Client not found", 404);
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!validateClientData($data)) {
+        respondWithError("Missing required client data", 400);
+    }
+    if (!executeChange(
+        "UPDATE Clients SET client_name = :client_name, phone_number = :phone_number,
+        email_address = :email_address, billing_address = :billing_address,
+        preferred_contact_method = :preferred_contact_method, notes = :notes
+        WHERE client_id = :client_id", [
+        ':client_name' => $data['client_name'],
+        ':phone_number' => $data['phone_number'],
+        ':email_address' => $data['email_address'],
+        ':billing_address' => $data['billing_address'],
+        ':preferred_contact_method' => $data['preferred_contact_method'],
+        ':notes' => $data['notes'],
+        ':client_id' => $client_id
+    ])) {
+        respondWithError("Client not updated", 500);
+    }
+}
+/*
 function getMenuItems($segments) {
     $item_name = $segments[1] ?? '';
     if (empty($item_name)) {
@@ -54,20 +120,6 @@ function getClientsByEmailDomain($segments) {
     ));
 }
 
-function getClientEvents($segments) {
-    $client_id = $segments[1];
-    if (!validateClientId($client_id)) {
-        respondWithError("Invalid client ID", 400);
-    }
-    if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
-    }
-    respondWithSuccess("Events for client $client_id retrieved successfully", 200, executeSelect(
-        "SELECT event_id, event_description, start_date, end_date, event_status
-        FROM Events WHERE client_id = :client_id", [':client_id' => $client_id]
-    ));
-}
-
 function archiveClient($segments) {
     $client_id = $segments[1];
     if (!validateClientId($client_id)) {
@@ -85,94 +137,5 @@ function archiveClient($segments) {
         respondWithError("Error archiving client", 500);
     }
 }
-
-function updateClientNotes($segments) {
-    $client_id = $segments[1];
-    if (!validateClientId($client_id)) {
-        respondWithError("Invalid client ID", 400);
-    }
-    if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
-    }
-    $data = json_decode(file_get_contents("php://input"), true);
-    $notes = $data['notes'] ?? '';
-    if (executeChange(
-        "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
-        [':notes' => $notes, ':client_id' => $client_id]
-    )) {
-        respondWithSuccess("Client notes updated successfully", 200);
-    } else {
-        respondWithError("Error updating client notes", 500);
-    }
-}
-
-function createClient($segments) {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $db = new DBController();
-    if (executeChange(
-        "INSERT INTO Clients (client_name, phone_number, email_address, billing_address,
-        preferred_contact_method, notes) VALUES (:client_name, :phone_number, :email_address,
-        :billing_address, :preferred_contact_method, :notes)", [
-        ':client_name' => $data['client_name'],
-        ':phone_number' => $data['phone_number'],
-        ':email_address' => $data['email_address'],
-        ':billing_address' => $data['billing_address'],
-        ':preferred_contact_method' => $data['preferred_contact_method'],
-        ':notes' => $data['notes']
-    ])) {
-        $newClientId = $db->conn->lastInsertId();
-        respondWithSuccess("Client created successfully with ID: $newClientId", 201);
-    } else {
-        respondWithError("Error creating client", 500);
-    }
-}
-
-function updateClientDetails($segments) {
-    $client_id = $segments[0];
-    if (!validateClientId($client_id)) {
-        respondWithError("Invalid client ID", 400);
-    }
-    if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
-    }
-    $data = json_decode(file_get_contents("php://input"), true);
-    if (!validateClientData($data)) {
-        respondWithError("Missing required client data", 400);
-    }
-    if (executeChange(
-        "UPDATE Clients SET client_name = :client_name, phone_number = :phone_number,
-        email_address = :email_address, billing_address = :billing_address,
-        preferred_contact_method = :preferred_contact_method, notes = :notes
-        WHERE client_id = :client_id", [
-        ':client_name' => $data['client_name'],
-        ':phone_number' => $data['phone_number'],
-        ':email_address' => $data['email_address'],
-        ':billing_address' => $data['billing_address'],
-        ':preferred_contact_method' => $data['preferred_contact_method'],
-        ':notes' => $data['notes'],
-        ':client_id' => $client_id
-    ])) {
-        respondWithSuccess("Client updated successfully", 200);
-    } else {
-        respondWithError("Error updating client", 500);
-    }
-}
-
-function deleteClient($segments) {
-    $client_id = $segments[0];
-    if (!validateClientId($client_id)) {
-        respondWithError("Invalid client ID", 400);
-    }
-    if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
-    }
-    if (executeChange(
-        "DELETE FROM Clients WHERE client_id = :client_id",
-        [':client_id' => $client_id]
-    )) {
-        respondWithSuccess("Client deleted successfully", 200);
-    } else {
-        respondWithError("Error deleting client", 500);
-    }
-}
+*/
 ?>

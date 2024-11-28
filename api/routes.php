@@ -27,22 +27,15 @@ $routes = [
     ],
     'client' => [
         'GET' => [
-            '' => 'getClients',
-            'upcoming-events' => 'getUpcomingEvents',
-            'menu-items' => 'getMenuItems',
-            'email-domain' => 'getClientsByEmailDomain',
-            'events' => 'getClientEvents'
+            '' => 'getClients',                  // Fetch all clients
+            'upcoming-events' => 'getUpcomingEvents'  // Fetch clients with upcoming events
         ],
         'POST' => [
-            '' => 'createClient',
-            'archive' => 'archiveClient',
-            'notes' => 'updateClientNotes'
+            '' => 'createClient',               // Create a new client
+            'notes' => 'updateClientNotes'     // Update notes for a client (client ID in segments)
         ],
         'PUT' => [
-            '' => 'updateClientDetails'
-        ],
-        'DELETE' => [
-            '' => 'deleteClient'
+            '' => 'updateClientDetails'        // Update client details (client ID in segments)
         ]
     ],
     'event' => [
