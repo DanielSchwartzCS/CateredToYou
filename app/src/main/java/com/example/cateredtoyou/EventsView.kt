@@ -119,7 +119,7 @@ class EventsView : AppCompatActivity() {
         Time: ${event.eventStartTime} - ${event.eventEndTime}
         Location: ${event.location}
         Guests: ${event.numberOfGuests}
-        Client: ${event.client.firstname} ${event.client.lastname}
+        Client: ${event.client.first_name} ${event.client.last_name}
         Status: ${event.status}
     """.trimIndent()
 
@@ -305,7 +305,7 @@ class EventsView : AppCompatActivity() {
             view.findViewById<TextView>(R.id.event_guests).text =
                 "Guests: ${event.numberOfGuests}"
             view.findViewById<TextView>(R.id.client_name).text =
-                "Client: ${event.client.firstname} ${event.client.lastname}"
+                "Client: ${event.client.first_name} ${event.client.last_name}"
 
             val statusView = view.findViewById<TextView>(R.id.event_status)
             statusView.text = event.status.uppercase()

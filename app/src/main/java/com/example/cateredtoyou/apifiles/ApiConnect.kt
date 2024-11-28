@@ -69,7 +69,10 @@ interface ApiConnect {
         @Field("firstname") firstname: String,
         @Field("lastname") lastname: String,
         @Field("email") email : String,
-        @Field("phonenumber") phonenumber : String
+        @Field("phonenumber") phonenumber : String,
+        @Field("billing") billing : String,
+        @Field("contactMethod") contactMethod : String,
+        @Field("notes") notes : String
     ): Call<AddClientResponse>
 
     @GET("get_clients.php")
@@ -220,38 +223,38 @@ fun clientCall(
         }
     })
 }
-fun addClient(
-    firstname: String,
-    lastname: String,
-    email: String,
-    phonenumber: String,
-    onSuccess: (AddClientResponse) -> Unit,
-    onPartialSuccess: (AddClientResponse) -> Unit,
-    onFailure: (Throwable) -> Unit
-){
-    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse>{
-        override fun onResponse(
-            call: Call<AddClientResponse>,
-            response: Response<AddClientResponse>
-        ) {
-            if(response.isSuccessful){
-                val rawResponse = response.body()
-                if (rawResponse != null && rawResponse.status) {
-                    onSuccess(rawResponse)
-                }else if(rawResponse != null){
-                    onPartialSuccess(rawResponse)
-                }
-            }else{
-                onFailure(Throwable("Failed to add client: ${response.message()}"))
-            }
-        }
-
-        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
-            onFailure(t)
-        }
-    })
-
-}
+//fun addClient(
+//    firstname: String,
+//    lastname: String,
+//    email: String,
+//    phonenumber: String,
+//    onSuccess: (AddClientResponse) -> Unit,
+//    onPartialSuccess: (AddClientResponse) -> Unit,
+//    onFailure: (Throwable) -> Unit
+//){
+//    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse>{
+//        override fun onResponse(
+//            call: Call<AddClientResponse>,
+//            response: Response<AddClientResponse>
+//        ) {
+//            if(response.isSuccessful){
+//                val rawResponse = response.body()
+//                if (rawResponse != null && rawResponse.status) {
+//                    onSuccess(rawResponse)
+//                }else if(rawResponse != null){
+//                    onPartialSuccess(rawResponse)
+//                }
+//            }else{
+//                onFailure(Throwable("Failed to add client: ${response.message()}"))
+//            }
+//        }
+//
+//        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
+//            onFailure(t)
+//        }
+//    })
+//
+//}
 
 data class EventResponse(
     @SerializedName("status") val status: Boolean,
@@ -274,17 +277,20 @@ data class EventData(
     val location: String,
     val status: String,
     val numberOfGuests: Int,
-    val client: ClientData,
+    val client: Client,
     val employeeId: Int,
     val additionalInfo: String?
 )
 
 data class ClientData(
-    val id: Int,
-    val firstname: String,
-    val lastname: String,
-    val email: String,
-    val phonenumber: String
+    val client_id: Int,
+    val first_name: String,
+    val last_name: String,
+    val phone_number: String,
+    val email_address: String,
+    val billing_address: String,
+    val preferred_contact_method: String,
+    val notes: String
 )
 
 data class TokenResponse(

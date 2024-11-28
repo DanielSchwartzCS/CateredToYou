@@ -605,7 +605,7 @@ class EventsActivity : AppCompatActivity() {
             Log.d(TAG, """
             Creating event with:
             Employee ID: $ADMIN_USER_ID
-            Client ID: ${client.id}
+            Client ID: ${client.client_id}
             Name: $name
             Date: $serverDate
             Time: $startTime - $endTime
@@ -621,7 +621,7 @@ class EventsActivity : AppCompatActivity() {
                 location = location,
                 status = "pending",
                 numberOfGuests = guests,
-                clientId = client.id,
+                clientId = client.client_id,
                 employeeId = ADMIN_USER_ID,
                 additionalInfo = "" // Empty since we're moving items to event_inventory
             ).enqueue(object : Callback<EventResponse> {
@@ -723,12 +723,16 @@ class EventsActivity : AppCompatActivity() {
         lastname: String,
         email: String,
         phonenumber: String,
+        billing: String,
+        contactMethod: String,
+        notes: String,
         onSuccess: (AddClientResponse) -> Unit,
         onError: (String) -> Unit
     ) {
         // Input validation
         if (firstname.isBlank() || lastname.isBlank() ||
-            email.isBlank() || phonenumber.isBlank()) {
+            email.isBlank() || phonenumber.isBlank() || billing.isBlank()
+            || contactMethod.isBlank() || notes.isBlank()) {
             onError("All fields must not be empty")
             return
         }
@@ -749,7 +753,10 @@ class EventsActivity : AppCompatActivity() {
             firstname = firstname.trim(),
             lastname = lastname.trim(),
             email = email.trim(),
-            phonenumber = sanitizedPhone
+            phonenumber = sanitizedPhone,
+            billing = billing.trim(),
+            contactMethod = contactMethod.trim(),
+            notes = notes.trim()
         ).enqueue(object : Callback<AddClientResponse> {
             override fun onResponse(
                 call: Call<AddClientResponse>,
@@ -789,6 +796,17 @@ class EventsActivity : AppCompatActivity() {
     private fun showAddClientDialog() {
         val dialogView = layoutInflater.inflate(R.layout.activity_addclient, null)
 
+        val contactMethods = listOf("Email", "Text", "Phone")
+        val spinner = dialogView.findViewById<Spinner>(R.id.preferred_contact_method)
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            contactMethods
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
+
         MaterialAlertDialogBuilder(this)
             .setView(dialogView)
 //            .setTitle(R.string.add_client_title)
@@ -797,7 +815,9 @@ class EventsActivity : AppCompatActivity() {
                 val lastname = dialogView.findViewById<EditText>(R.id.last_name).text.toString()
                 val email = dialogView.findViewById<EditText>(R.id.email).text.toString()
                 val phone = dialogView.findViewById<EditText>(R.id.phone_number).text.toString()
-
+                val billing = dialogView.findViewById<EditText>(R.id.billing_address).text.toString()
+                val notes = dialogView.findViewById<EditText>(R.id.notes).text.toString()
+                val contact = spinner.selectedItem.toString()
                 if (validateClientInputs(firstname, lastname, email, phone)) {
                     showProgressBar()
                     addClient(
@@ -805,6 +825,9 @@ class EventsActivity : AppCompatActivity() {
                         lastname = lastname,
                         email = email,
                         phonenumber = phone,
+                        billing = billing,
+                        contactMethod = contact,
+                        notes = notes,
                         onSuccess = { response ->
                             hideProgressBar()
                             showSuccess(response.message)
@@ -843,7 +866,7 @@ class EventsActivity : AppCompatActivity() {
             eventDateInput.text,
             "${eventStartTimeInput.text} - ${eventEndTimeInput.text}",
             eventLocationInput.text,
-            "${client.firstname} ${client.lastname}",
+            "${client.first_name} ${client.last_name}",
             expectedGuestsInput.text,
             menuItemsAdapter.getSelectedItems().size,
             equipmentAdapter.getSelectedItems().size

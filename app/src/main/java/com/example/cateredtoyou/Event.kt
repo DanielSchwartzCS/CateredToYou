@@ -30,14 +30,17 @@ data class Event(
 }
 
 data class Client(
-    val id: Int,
-    val firstname: String,
-    val lastname: String,
-    val email: String,
-    val phonenumber: String
+    val client_id: Int,
+    val first_name: String,
+    val last_name: String,
+    val phone_number: String,
+    val email_address: String,
+    val billing_address: String,
+    val preferred_contact_method: String,
+    val notes: String
 ) {
     override fun toString(): String {
-        return "$firstname $lastname"
+        return "$first_name $last_name"
     }
 }
 
