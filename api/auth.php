@@ -3,16 +3,18 @@ require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
 require_once 'token.php';
+require_once 'validators.php';
 
 // Handle login: authenticate user and return JWT
 function login($segments) {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $username = $data['username'] ?? '';
-    $password = $data['password'] ?? '';
+    $fieldsAndTypes = [
+        'username' => 'string',
+        'password' => 'string'
+    ];
 
-    if (empty($username) || empty($password)) {
-        respondWithError("Username and password are required", 400);
-    }
+    $data = validateBody($fieldsAndTypes);
+    $username = $data['username'];
+    $password = $data['password'];
 
     $userData = executeSelect("SELECT user_id, password_hash, role FROM users WHERE username = :username",
             [':username' => $username], false);
@@ -32,35 +34,45 @@ function login($segments) {
 
 // Handle refresh: validate refresh token and return new JWT
 function refresh($segments) {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $refreshToken = $data['refresh_token'] ?? '';
+    $fieldsAndTypes = [
+        'refresh_token' => 'string'
+    ];
 
-    if (empty($refreshToken)) {
-        respondWithError("Refresh token is required", 400);
-    }
-
-    // Validate and refresh JWT using the provided refresh token
+    $data = validateBody($fieldsAndTypes);
+    $refreshToken = $data['refresh_token'];
     $userData = refreshJwt($refreshToken);
 
-    if (!$userData) {
-        respondWithError("Invalid or expired refresh token", 401);
-    }
-
-    $jwt = generateJwt($userData->userId, $userData->role);
+    $jwt = generateJwt($userData['userId'], $userData['role']);
 
     respondWithSuccess("JWT refreshed successfully", 200, ['jwt' => $jwt]);
 }
 
-// Handle logout: mark the refresh token as expired
+/**
+ * Handle logout: marks the refresh token as expired in the database
+ *
+ * Expected Behavior:
+ * - Marks the provided refresh token as expired in the database, making it
+ *   invalid for future authentication requests. Responds with a success
+ *   message upon completion.
+ *
+ * What it doesn't do:
+ * - Does NOT remove or invalidate the JWT on the client side. The client
+ *   application is responsible for deleting the JWT from local storage,
+ *   session, or cookies.
+ * - Does NOT affect any active sessions on the client side. The front-end
+ *   must manage the token state after this request (e.g., removing the
+ *   JWT from storage or session).
+ * - Does NOT revoke other active sessions or tokens. It only expires the
+ *   refresh token provided in the request.
+ */
 function logout($segments) {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $refreshToken = $data['refresh_token'] ?? '';
+    $fieldsAndTypes = [
+        'refresh_token' => 'string'
+    ];
 
-    if (empty($refreshToken)) {
-        respondWithError("Refresh token is required", 400);
-    }
+    $data = validateBody($fieldsAndTypes);
+    $refreshToken = $data['refresh_token'];
 
-    // Mark the refresh token as expired in the database
     markTokenAsExpired($refreshToken);
 
     respondWithSuccess("Logged out successfully", 200);

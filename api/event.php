@@ -2,127 +2,101 @@
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
-// Fetch events or a specific event by ID
+// Fetch events or a specific event by ID. Be cautious, with a large scale
+// caterer this could be a huge amount of data if fetching all events
 function fetchEvents($segments) {
-    $eventId = $segments[0] ?? null;
+    if ($segments[0] === '') { //fetch all events
+        respondWithSuccess("Events retrieved successfully", 200,
+            executeSelect("SELECT * FROM events")
+        );
+    } else {
+        $event_id = validateResource($segments, 0);
+        $result = executeSelect("SELECT * FROM events WHERE event_id = :event_id",
+        [':event_id' => $eventId], false);
 
-    try {
-        if ($eventId) {
-            $query = "SELECT * FROM events WHERE event_id = :event_id";
-            $params = [':event_id' => $eventId];
-            $result = executeSelect($query, $params, false);
-
-            if (!$result) {
-                respondWithError("Event not found", 404);
-            } else {
-                respondWithSuccess("Event retrieved successfully", 200, $result);
-            }
+        if (!$result) {
+            respondWithError("Event not found", 204);
         } else {
-            $query = "SELECT * FROM events";
-            $result = executeSelect($query);  // Fetch all rows
-
-            respondWithSuccess("Events retrieved successfully", 200, $result);
+            respondWithSuccess("Event retrieved successfully", 200, $result);
         }
-    } catch (Exception $e) {
-        respondWithError("Failed to fetch event(s): " . $e->getMessage(), 500);
     }
 }
 
 // Create a new event
 function createEvent() {
-    $data = json_decode(file_get_contents("php://input"), true);
+    $fieldsAndTypes = [
+        'event_description' => 'string',
+        'event_date' => 'date',
+        'event_time' => 'time',
+        'location' => 'string',
+        'num_guests' => 'nonNegInt'
+    ];
 
-    // Required fields
-    $requiredFields = ['event_description', 'event_date', 'event_time', 'location', 'num_guests'];
-    foreach ($requiredFields as $field) {
-        if (empty($data[$field])) {
-            respondWithError("$field is required", 400);
-        }
-    }
+    $data = validateBody($fieldsAndTypes);
 
-    try {
-        $query = "INSERT INTO events (event_description, event_date, event_time, location, num_guests, notes)
-                  VALUES (:event_description, :event_date, :event_time, :location, :num_guests, :notes)";
-        $params = [
-            ':event_description' => $data['event_description'],
-            ':event_date' => $data['event_date'],
-            ':event_time' => $data['event_time'],
-            ':location' => $data['location'],
-            ':num_guests' => $data['num_guests'],
-            ':notes' => $data['notes'] ?? null
-        ];
+    $query = "INSERT INTO events (event_description, event_date, event_time, location, num_guests, notes)
+              VALUES (:event_description, :event_date, :event_time, :location, :num_guests, :notes)";
+    $params = [
+        ':event_description' => $data['event_description'],
+        ':event_date' => $data['event_date'],
+        ':event_time' => $data['event_time'],
+        ':location' => $data['location'],
+        ':num_guests' => $data['num_guests'],
+        ':notes' => $data['notes'] ?? null
+    ];
 
-        $rowCount = executeChange($query, $params);
-
-        if ($rowCount > 0) {
-            respondWithSuccess("Event created successfully", 201);
-        } else {
-            respondWithError("Failed to create event", 500);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to create event: " . $e->getMessage(), 500);
+    if (!executeChange($query, $params)) {
+        respondWithError("Failed to create event", 500);
     }
 }
 
 // Update an existing event
 function updateEvent($segments) {
-    $eventId = $segments[0] ?? null;
+    $eventId = validateResource($segments, 0, 'posInt');
 
-    if (!$eventId) {
-        respondWithError("Event ID is required for updating", 400);
-    }
+    $fieldsAndTypes = [
+        'event_description' => 'string',
+        'event_date' => 'date',
+        'event_time' => 'time',
+        'location' => 'string',
+        'num_guests' => 'posInt',
+    ];
+    $data = validateBody($fieldsAndTypes);
 
-    $data = json_decode(file_get_contents("php://input"), true);
+    // Prepare the SQL query to update the event
+    $query = "UPDATE events
+              SET event_description = :event_description,
+                  event_date = :event_date,
+                  event_time = :event_time,
+                  location = :location,
+                  num_guests = :num_guests,
+                  notes = :notes
+              WHERE event_id = :event_id";
 
-    try {
-        $fieldsToUpdate = [];
-        $params = [':event_id' => $eventId];
+    // Prepare the parameters for the query
+    $params = [
+        ':event_id' => $eventId,
+        ':event_description' => $data['event_description'],
+        ':event_date' => $data['event_date'],
+        ':event_time' => $data['event_time'],
+        ':location' => $data['location'],
+        ':num_guests' => $data['num_guests'],
+        ':notes' => $data['notes'] ?? null
+    ];
 
-        // Add fields dynamically
-        foreach ($data as $field => $value) {
-            $fieldsToUpdate[] = "$field = :$field";
-            $params[":$field"] = $value;
-        }
-
-        if (empty($fieldsToUpdate)) {
-            respondWithError("No valid fields provided to update", 400);
-        }
-
-        $query = "UPDATE events SET " . implode(', ', $fieldsToUpdate) . " WHERE event_id = :event_id";
-        $rowCount = executeChange($query, $params);
-
-        if ($rowCount > 0) {
-            respondWithSuccess("Event updated successfully", 200);
-        } else {
-            respondWithError("Event not found or no changes made", 404);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to update event: " . $e->getMessage(), 500);
+    if (!executeChange($query, $params)) {
+        respondWithError("Event not found or no changes made", 404);
     }
 }
 
-// Delete an event
+// Delete an event. Should likely never be used. TODO: implement archive
 function deleteEvent($segments) {
-    $eventId = $segments[0] ?? null;
+    $eventId = validateResource($segments, 0, 'posInt');
 
-    if (!$eventId) {
-        respondWithError("Event ID is required for deletion", 400);
-    }
-
-    try {
-        $query = "DELETE FROM events WHERE event_id = :event_id";
-        $params = [':event_id' => $eventId];
-
-        $rowCount = executeChange($query, $params);
-
-        if ($rowCount > 0) {
-            respondWithSuccess("Event deleted successfully", 200);
-        } else {
-            respondWithError("Event not found", 404);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to delete event: " . $e->getMessage(), 500);
+    if (!executeChange("DELETE FROM events WHERE event_id = :event_id",
+        [':event_id' => $eventId]
+    )) {
+        respondWithError("Event not deleted", 204);
     }
 }
-
 ?>

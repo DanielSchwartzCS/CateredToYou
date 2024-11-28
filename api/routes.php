@@ -32,10 +32,13 @@ $routes = [
         ],
         'POST' => [
             '' => 'createClient',               // Create a new client
-            'notes' => 'updateClientNotes'     // Update notes for a client (client ID in segments)
+            'notes/{client_id}' => 'updateClientNotes' // Update notes for a specific client
         ],
         'PUT' => [
-            '' => 'updateClientDetails'        // Update client details (client ID in segments)
+            '{client_id}' => 'updateClientDetails'         // Update client details (client ID in segments)
+        ],
+        'PATCH' => [
+            'notes/{client_id}' => 'patchClientNotes'       // Partial update of client notes (client ID in segments)
         ]
     ],
     'event' => [
@@ -76,9 +79,10 @@ $routes = [
             '' => 'createInventory'  // Create new inventory item(s)
         ],
         'PUT' => [
-            '{inventory_id}' => 'updateInventoryQuantity',  // Update quantity of an inventory item
             '' => 'updateInventoryEntry'  // Update entire inventory entry
-        ]
+        ],
+        'PATCH' => [
+            '{inventory_id}' => 'updateInventoryQuantity',  // Update quantity of an inventory item
     ]
 ];
 ?>

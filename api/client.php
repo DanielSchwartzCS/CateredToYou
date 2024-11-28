@@ -3,6 +3,7 @@ require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
 require_once 'auth.php';
+require_once 'validators.php'
 
 function validateClientId($client_id) {
     return is_numeric($client_id) && $client_id > 0;
@@ -32,35 +33,46 @@ function getUpcomingEvents($segments) {
 }
 
 function updateClientNotes($segments) {
-    $client_id = $segments[1];
-    if (!validateClientId($client_id)) {
-        respondWithError("Invalid client ID", 400);
-    }
+    $client_id = validateResource($segments, 1, 'posInt');
+
     if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
+        respondWithError("Client not found", 204);
     }
-    $data = json_decode(file_get_contents("php://input"), true);
+
+    $data = validateBody(['notes' => 'string']);
     $notes = $data['notes'] ?? '';
+
     if (!executeChange(
         "UPDATE Clients SET notes = :notes WHERE client_id = :client_id",
-        [':notes' => $notes, ':client_id' => $client_id])) {
+        [':notes' => $notes, ':client_id' => $client_id])
+    ) {
         respondWithError("Failed to update client notes", 400);
-        }
+    }
 }
 
 function createClient($segments) {
-    $data = json_decode(file_get_contents("php://input"), true);
+    $fieldsAndTypes = [
+        'client_name' => 'string',
+        'phone' => 'string',
+        'email_address' => 'email',
+        'billing_address' => 'string',
+        'preferred_contact_method' => 'string',
+        'notes' => 'string'
+    ];
+
+    $data = validateBody($fieldsAndTypes);
+
     if (executeChange(
-        "INSERT INTO Clients (client_name, phone_number, email_address, billing_address,
-        preferred_contact_method, notes) VALUES (:client_name, :phone_number, :email_address,
+        "INSERT INTO Clients (client_name, phone, email_address, billing_address,
+        preferred_contact_method, notes) VALUES (:client_name, :phone, :email_address,
         :billing_address, :preferred_contact_method, :notes)", [
         ':client_name' => $data['client_name'],
-        ':phone_number' => $data['phone_number'],
+        ':phone' => $data['phone'],
         ':email_address' => $data['email_address'],
         ':billing_address' => $data['billing_address'],
         ':preferred_contact_method' => $data['preferred_contact_method'],
         ':notes' => $data['notes']
-    ]) {
+    ])) {
         $newClientId = $db->conn->lastInsertId();
         respondWithSuccess("Client created successfully with ID: $newClientId", 201);
     } else {
@@ -68,25 +80,31 @@ function createClient($segments) {
     }
 }
 
+
 function updateClientDetails($segments) {
-    $client_id = $segments[0];
+    if (!is_array($segments) || empty($segments[0])) {
+        respondWithError("Client ID is required", 400);
+    }
+
+    $client_id = validate($segments[0], 'posInt');
     if (!validateClientId($client_id)) {
         respondWithError("Invalid client ID", 400);
     }
     if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
+        respondWithError("Client not found", 204);
     }
     $data = json_decode(file_get_contents("php://input"), true);
     if (!validateClientData($data)) {
         respondWithError("Missing required client data", 400);
     }
+
     if (!executeChange(
-        "UPDATE Clients SET client_name = :client_name, phone_number = :phone_number,
+        "UPDATE Clients SET client_name = :client_name, phone = :phone,
         email_address = :email_address, billing_address = :billing_address,
         preferred_contact_method = :preferred_contact_method, notes = :notes
         WHERE client_id = :client_id", [
         ':client_name' => $data['client_name'],
-        ':phone_number' => $data['phone_number'],
+        ':phone' => $data['phone'],
         ':email_address' => $data['email_address'],
         ':billing_address' => $data['billing_address'],
         ':preferred_contact_method' => $data['preferred_contact_method'],
@@ -126,7 +144,7 @@ function archiveClient($segments) {
         respondWithError("Invalid client ID", 400);
     }
     if (!checkClientExists($client_id)) {
-        respondWithError("Client not found", 404);
+        respondWithError("Client not found", 204);
     }
     if (executeChange(
         "UPDATE Clients SET archived = TRUE WHERE client_id = :client_id",
