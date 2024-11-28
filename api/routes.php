@@ -66,6 +66,19 @@ $routes = [
         'DELETE' => [
             '' => 'deleteMenuItem'  // Delete an existing menu item
         ]
+    ],
+    'inventory' => [
+        'GET' => [
+            '' => 'fetchAllInventory',  // Fetch all inventory items
+            'event' => 'fetchInventoryByEvent'  // Fetch inventory related to a specific event
+        ],
+        'POST' => [
+            '' => 'createInventory'  // Create new inventory item(s)
+        ],
+        'PUT' => [
+            '{inventory_id}' => 'updateInventoryQuantity',  // Update quantity of an inventory item
+            '' => 'updateInventoryEntry'  // Update entire inventory entry
+        ]
     ]
 ];
 ?>

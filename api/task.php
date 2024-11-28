@@ -48,16 +48,13 @@ function updateStatus($segments) {
     if (!$currentStatus) {
         respondWithError("Task $task_id not found", 400);
     }
-    if ($status === $currentStatus) {
-        respondWithError("Status must be different than original status to update it.", 400);
-    }
 
     if (!executeChange("UPDATE tasks SET status = :status WHERE task_id = :task_id",
-        [':task_id' => $task_id, ':status' => $status])) {
+        [':task_id' => $task_id, ':status' => $status])
+        && ($status !== $currentStatus)
+    {
         respondWithError("Failed to update status", 404);
     }
-
-    respondWithSuccess("Task $task_id status updated to $status", 200);
 }
 
 // Create a new task (PUT method)
