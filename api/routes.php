@@ -2,8 +2,15 @@
 $routes = [
     'task' => [
         'GET' => [
-            '' => 'fetchTasks'       // For fetching all tasks
+            '' => 'fetchTasks',       // For fetching all or filtered tasks
+            'event' => 'fetchTasksByEvent'
         ],
+        'PATCH' => [
+            '{task_id}' => 'updateStatus'
+        ],
+        'PUT' => [
+            '{task_id}' => 'createTask'
+        ]
     ],
     'auth' => [
         'POST' => [
