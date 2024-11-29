@@ -269,17 +269,21 @@ data class EventsResponse(
 )
 
 data class EventData(
-    val id: Int,
-    val name: String,
-    val eventDate: String,
-    val eventStartTime: String,
-    val eventEndTime: String,
+    val event_id: Int,
+    val event_name: String,
+    val event_description: String,
+    val start_date: String,
+    val end_date: String,
     val location: String,
-    val status: String,
-    val numberOfGuests: Int,
+    val client_id: Int,
     val client: Client,
-    val employeeId: Int,
-    val additionalInfo: String?
+    val guest_count: Int,
+    val waiters_provided: Int,
+    val min_staff: Int,
+    val notes: String,
+    val event_status: String,
+    val start_time: String,
+    val end_time: String
 )
 
 data class ClientData(
@@ -299,18 +303,16 @@ data class TokenResponse(
 )
 
 data class InventoryItem(
-    @SerializedName("id") val id: Int,
-    @SerializedName("item_name") val itemName: String,
-    @SerializedName("quantity") val quantity: Int,
-    @SerializedName("category") val category: String,
-    @SerializedName("unit_of_measurement") val unitOfMeasurement: String?,
-    @SerializedName("cost_per_unit") val costPerUnit: Double?,
-    @SerializedName("minimum_stock") val minimumStock: Int?,
-    @SerializedName("notes") val notes: String?,
-    @SerializedName("last_restocked") val lastRestocked: String?,
-    @SerializedName("updated_at") val updatedAt: String?
+    val inventory_id: Int,
+    val item_name: String,
+    val category: String,
+    val display_unit: String?,
+    val quantity_in_stock: Float,
+    val cost_per_unit: Float,
+    val location_id: Int,
+    val notes: String?,
 ) {
-    override fun toString(): String = itemName
+    override fun toString(): String = item_name
 }
 
 
@@ -338,5 +340,5 @@ data class DeleteResponse(
 )
 data class UpdateInventoryRequest(
     @SerializedName("id") val id: Int,
-    @SerializedName("quantity") val quantity: Int
+    @SerializedName("quantity") val quantity: Float
 )

@@ -92,7 +92,7 @@ class InventoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun onQuantityChanged(item: InventoryItem, newQuantity: Int) {
+    private fun onQuantityChanged(item: InventoryItem, newQuantity: Float) {
         if (newQuantity < 0) {
             showError("Quantity cannot be negative")
             return
@@ -100,7 +100,7 @@ class InventoryActivity : AppCompatActivity() {
 
         showLoading(true)
 
-        val updateRequest = UpdateInventoryRequest(item.id, newQuantity)
+        val updateRequest = UpdateInventoryRequest(item.inventory_id, newQuantity)
         DatabaseApi.retrofitService.updateInventory(updateRequest)
             .enqueue(object : Callback<BaseResponse> {
                 override fun onResponse(

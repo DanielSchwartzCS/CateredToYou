@@ -62,7 +62,7 @@ class InventoryAdapter(
 
     fun getSelectedItems(): Map<InventoryItem, Int> = buildMap {
         selectedQuantities.filterValues { it > 0 }.forEach { (id, quantity) ->
-            items.find { it.id == id }?.let { item ->
+            items.find { it.inventory_id == id }?.let { item ->
                 put(item, quantity)
             }
         }
@@ -74,7 +74,7 @@ class InventoryAdapter(
 
     override fun getCount(): Int = filteredItems.size
     override fun getItem(position: Int): InventoryItem = filteredItems[position]
-    override fun getItemId(position: Int): Long = filteredItems[position].id.toLong()
+    override fun getItemId(position: Int): Long = filteredItems[position].inventory_id.toLong()
     override fun hasStableIds(): Boolean = true
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -108,16 +108,17 @@ class InventoryAdapter(
         }
 
         private fun setupBasicInfo(item: InventoryItem) {
-            nameTextView.text = item.itemName
+            nameTextView.text = item.item_name
 
-            val cost = item.costPerUnit?.let {
+//            val cost = ""
+            val cost = item.cost_per_unit?.let {
                 currencyFormatter.format(it)
             } ?: ""
 
             detailsTextView.text = buildString {
-                append(item.quantity)
+                append(item.quantity_in_stock)
                 append(" ")
-                append(item.unitOfMeasurement ?: "units")
+                append(item.display_unit ?: "units")
                 append(" available ")
                 if (cost.isNotEmpty()) {
                     append("@ ")
@@ -134,8 +135,8 @@ class InventoryAdapter(
         private fun setupQuantityPicker(item: InventoryItem) {
             quantityPicker.apply {
                 minValue = 0
-                maxValue = item.quantity
-                value = selectedQuantities[item.id] ?: 0
+                maxValue = item.quantity_in_stock.toInt()
+                value = selectedQuantities[item.inventory_id] ?: 0
                 setOnValueChangedListener { _, _, newVal ->
                     updateQuantity(item, newVal)
                 }
@@ -143,7 +144,7 @@ class InventoryAdapter(
         }
 
         private fun updateQuantity(item: InventoryItem, newVal: Int) {
-            selectedQuantities[item.id] = newVal
+            selectedQuantities[item.inventory_id] = newVal
 
             // Debounce the updates to prevent rapid firing
             updateRunnable?.let { updateHandler.removeCallbacks(it) }
@@ -165,8 +166,8 @@ class InventoryAdapter(
 
         private fun setupAvailabilityIndicator(item: InventoryItem) {
             val colorRes = when {
-                item.quantity == 0 -> android.R.color.holo_red_dark
-                item.quantity < 5 -> android.R.color.holo_orange_dark
+                item.quantity_in_stock.toInt() == 0 -> android.R.color.holo_red_dark
+                item.quantity_in_stock < 5 -> android.R.color.holo_orange_dark
                 else -> android.R.color.holo_green_dark
             }
             availabilityIndicator.setBackgroundColor(ContextCompat.getColor(context, colorRes))
@@ -177,7 +178,7 @@ class InventoryAdapter(
                 setCardBackgroundColor(
                     ContextCompat.getColor(
                         context,
-                        if (selectedQuantities[item.id] ?: 0 > 0) {
+                        if ((selectedQuantities[item.inventory_id] ?: 0) > 0) {
                             R.color.selected_card_background
                         } else {
                             android.R.color.white
@@ -201,8 +202,8 @@ class InventoryAdapter(
 
     private fun calculateTotalCost() {
         totalCost = selectedQuantities.entries.sumOf { (itemId, quantity) ->
-            items.find { it.id == itemId }?.let { item ->
-                (item.costPerUnit ?: 0.0) * quantity
+            items.find { it.inventory_id == itemId }?.let { item ->
+                (item.cost_per_unit.toDouble() ?: 0.0) * quantity
             } ?: 0.0
         }
     }

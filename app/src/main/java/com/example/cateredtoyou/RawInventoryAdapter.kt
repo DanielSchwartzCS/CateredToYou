@@ -18,7 +18,7 @@ import android.os.Handler
 import android.os.Looper
 
 class RawInventoryAdapter(
-    private val onQuantityChanged: (InventoryItem, Int) -> Unit
+    private val onQuantityChanged: (InventoryItem, Float) -> Unit
 ) : ListAdapter<InventoryItem, RawInventoryAdapter.ViewHolder>(InventoryDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -41,20 +41,20 @@ class RawInventoryAdapter(
         private val lowStockWarning: TextView = itemView.findViewById(R.id.lowStockWarning)
 
         fun bind(item: InventoryItem) {
-            itemName.text = item.itemName
+            itemName.text = item.item_name
             updateQuantityText(item)
             updateMinimumStockText(item)
-            updateLowStockWarning(item)
+//            updateLowStockWarning(item)
 
             increaseButton.setOnClickListener {
                 applyButtonAnimations(increaseButton)
-                onQuantityChanged(item, item.quantity + 1)
+                onQuantityChanged(item, item.quantity_in_stock + 1)
             }
 
             decreaseButton.setOnClickListener {
                 applyButtonAnimations(decreaseButton)
-                if (item.quantity > 0) {
-                    onQuantityChanged(item, item.quantity - 1)
+                if (item.quantity_in_stock > 0) {
+                    onQuantityChanged(item, item.quantity_in_stock - 1)
                 }
             }
         }
@@ -75,36 +75,36 @@ class RawInventoryAdapter(
         }
 
         private fun updateQuantityText(item: InventoryItem) {
-            val unit = item.unitOfMeasurement ?: "units"
-            itemQuantity.text = "Quantity: ${item.quantity} $unit"
+            val unit = item.display_unit ?: "units"
+            itemQuantity.text = "Quantity: ${item.quantity_in_stock} $unit"
         }
 
         private fun updateMinimumStockText(item: InventoryItem) {
-            item.minimumStock?.let { minStock ->
-                val unit = item.unitOfMeasurement ?: "units"
-                minimumStock.text = "Minimum Stock: $minStock $unit"
-                minimumStock.visibility = View.VISIBLE
-            } ?: run {
+//            item.minimumStock?.let { minStock ->
+//                val unit = item.unitOfMeasurement ?: "units"
+//                minimumStock.text = "Minimum Stock: $minStock $unit"
+//                minimumStock.visibility = View.VISIBLE
+//            } ?: run {
                 minimumStock.visibility = View.GONE
-            }
+//            }
         }
 
-        private fun updateLowStockWarning(item: InventoryItem) {
-            item.minimumStock?.let { minStock ->
-                lowStockWarning.visibility = if (item.quantity <= minStock) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
-            } ?: run {
-                lowStockWarning.visibility = View.GONE
-            }
-        }
+//        private fun updateLowStockWarning(item: InventoryItem) {
+//            item.minimumStock?.let { minStock ->
+//                lowStockWarning.visibility = if (item.quantity <= minStock) {
+//                    View.VISIBLE
+//                } else {
+//                    View.GONE
+//                }
+//            } ?: run {
+//                lowStockWarning.visibility = View.GONE
+//            }
+//        }
     }
 
     private class InventoryDiffCallback : DiffUtil.ItemCallback<InventoryItem>() {
         override fun areItemsTheSame(oldItem: InventoryItem, newItem: InventoryItem): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem.inventory_id == newItem.inventory_id
         }
 
         override fun areContentsTheSame(oldItem: InventoryItem, newItem: InventoryItem): Boolean {

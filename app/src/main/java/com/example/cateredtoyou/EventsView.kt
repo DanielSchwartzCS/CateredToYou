@@ -114,13 +114,13 @@ class EventsView : AppCompatActivity() {
 
         // Set up basic info
         val basicInfo = """
-        Event: ${event.name}
-        Date: ${event.eventDate}
-        Time: ${event.eventStartTime} - ${event.eventEndTime}
+        Event: ${event.event_name}
+        Date: ${event.start_date}
+        Time: ${event.start_time} - ${event.end_time}
         Location: ${event.location}
-        Guests: ${event.numberOfGuests}
+        Guests: ${event.guest_count}
         Client: ${event.client.first_name} ${event.client.last_name}
-        Status: ${event.status}
+        Status: ${event.event_status}
     """.trimIndent()
 
         dialogView.findViewById<TextView>(R.id.event_basic_info).text = basicInfo
@@ -135,7 +135,7 @@ class EventsView : AppCompatActivity() {
         val progressBar = dialogView.findViewById<ProgressBar>(R.id.inventory_progress)
         progressBar.visibility = View.VISIBLE
 
-        loadEventInventory(event.id, dialogView)
+        loadEventInventory(event.event_id, dialogView)
 
         // Set up close button
         dialogView.findViewById<Button>(R.id.close_button).setOnClickListener {
@@ -147,7 +147,7 @@ class EventsView : AppCompatActivity() {
     private fun showDeleteConfirmation(event: EventData) {
         AlertDialog.Builder(this)
             .setTitle("Delete Event")
-            .setMessage("Are you sure you want to delete '${event.name}'?")
+            .setMessage("Are you sure you want to delete '${event.event_name}'?")
             .setPositiveButton("Delete") { _, _ ->
                 deleteEvent(event)
             }
@@ -157,7 +157,7 @@ class EventsView : AppCompatActivity() {
     private fun deleteEvent(event: EventData) {
         showLoading(true)
 
-        DatabaseApi.retrofitService.deleteEvent(event.id).enqueue(object : Callback<DeleteResponse> {
+        DatabaseApi.retrofitService.deleteEvent(event.event_id).enqueue(object : Callback<DeleteResponse> {
             override fun onResponse(call: Call<DeleteResponse>, response: Response<DeleteResponse>) {
                 showLoading(false)
                 if (response.isSuccessful && response.body()?.status == true) {
@@ -297,19 +297,19 @@ class EventsView : AppCompatActivity() {
         }
 
         private fun bindEventData(view: View, event: EventData) {
-            view.findViewById<TextView>(R.id.event_name).text = event.name
-            view.findViewById<TextView>(R.id.event_date).text = "Date: ${event.eventDate}"
+            view.findViewById<TextView>(R.id.event_name).text = event.event_name
+            view.findViewById<TextView>(R.id.event_date).text = "Date: ${event.start_date}"
             view.findViewById<TextView>(R.id.event_time).text =
-                "Time: ${event.eventStartTime} - ${event.eventEndTime}"
+                "Time: ${event.start_time} - ${event.end_time}"
             view.findViewById<TextView>(R.id.event_location).text = "Location: ${event.location}"
             view.findViewById<TextView>(R.id.event_guests).text =
-                "Guests: ${event.numberOfGuests}"
+                "Guests: ${event.guest_count}"
             view.findViewById<TextView>(R.id.client_name).text =
                 "Client: ${event.client.first_name} ${event.client.last_name}"
 
             val statusView = view.findViewById<TextView>(R.id.event_status)
-            statusView.text = event.status.uppercase()
-            statusView.setBackgroundResource(getStatusBackground(event.status))
+            statusView.text = event.event_status.uppercase()
+            statusView.setBackgroundResource(getStatusBackground(event.event_status))
             statusView.setTextColor(ContextCompat.getColor(context, android.R.color.white))
         }
 

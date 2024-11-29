@@ -32,7 +32,7 @@ class EventsActivity : AppCompatActivity() {
         private const val MAX_EVENT_HOURS = 12
         private const val DEFAULT_EVENT_DURATION_HOURS = 2
         private const val DATE_PICKER_YEARS_RANGE = 2
-        private const val ADMIN_USER_ID = 1 // Default admin user ID
+        private const val ADMIN_USER_ID = 2 // Default admin user ID
         private const val ADMIN_EMPLOYEE_ID = 3  // Default admin employee ID
         private const val STATE_EVENT_NAME = "event_name"
         private const val STATE_EVENT_DATE = "event_date"
@@ -47,7 +47,7 @@ class EventsActivity : AppCompatActivity() {
                 val selectedItems = eventsActivity.menuItemsAdapter.getSelectedItems() + eventsActivity.equipmentAdapter.getSelectedItems()
                 selectedItems.forEach { (item, quantity) ->
                     put(JSONObject().apply {
-                        put("inventory_id", item.id)
+                        put("inventory_id", item.inventory_id)
                         put("quantity", quantity)
                     })
                 }
@@ -94,6 +94,7 @@ class EventsActivity : AppCompatActivity() {
     private lateinit var eventLocationInput: EditText
     private lateinit var clientSpinner: Spinner
     private lateinit var expectedGuestsInput: EditText
+    private lateinit var additionalInfo: EditText
     private lateinit var statusSpinner: Spinner
     private lateinit var addEventButton: Button
     private lateinit var newClientButton: Button
@@ -146,6 +147,7 @@ class EventsActivity : AppCompatActivity() {
         eventLocationInput = findViewById(R.id.event_location_input)
         clientSpinner = findViewById(R.id.client_spinner)
         expectedGuestsInput = findViewById(R.id.expected_guests_input)
+        additionalInfo = findViewById(R.id.notes_input)
         statusSpinner = findViewById(R.id.status_spinner)
         addEventButton = findViewById(R.id.add_event_button)
         newClientButton = findViewById(R.id.create_new_client_button)
@@ -195,7 +197,7 @@ class EventsActivity : AppCompatActivity() {
             mutableListOf()
         ) { item, quantity, _ ->  // Added _ for totalCost parameter
             updateAddEventButtonState()
-            Log.d("EventsActivity", "Menu item ${item.itemName} quantity changed to $quantity")
+            Log.d("EventsActivity", "Menu item ${item.item_name} quantity changed to $quantity")
         }
 
         equipmentAdapter = InventoryAdapter(
@@ -203,7 +205,7 @@ class EventsActivity : AppCompatActivity() {
             mutableListOf()
         ) { item, quantity, _ ->  // Added _ for totalCost parameter
             updateAddEventButtonState()
-            Log.d("EventsActivity", "Equipment ${item.itemName} quantity changed to $quantity")
+            Log.d("EventsActivity", "Equipment ${item.item_name} quantity changed to $quantity")
         }
 
         menuItemListView.adapter = menuItemsAdapter
@@ -524,11 +526,11 @@ class EventsActivity : AppCompatActivity() {
         }
 
         val invalidItems = (menuItems + equipment).filter { (item, quantity) ->
-            quantity <= 0 || quantity > item.quantity
+            quantity <= 0 || quantity > item.quantity_in_stock
         }
 
         return if (invalidItems.isNotEmpty()) {
-            val itemNames = invalidItems.map { it.key.itemName }.joinToString(", ")
+            val itemNames = invalidItems.map { it.key.item_name }.joinToString(", ")
             showError(getString(R.string.error_invalid_quantities, itemNames))
             false
         } else true
@@ -600,6 +602,7 @@ class EventsActivity : AppCompatActivity() {
             val name = eventNameInput.text.toString().trim()
             val location = eventLocationInput.text.toString().trim()
             val guests = expectedGuestsInput.text.toString().toInt()
+            val notes = additionalInfo.text.toString().trim()
 
             // Debug log
             Log.d(TAG, """
@@ -619,11 +622,11 @@ class EventsActivity : AppCompatActivity() {
                 startTime = startTime,
                 endTime = endTime,
                 location = location,
-                status = "pending",
+                status = "Planned",
                 numberOfGuests = guests,
                 clientId = client.client_id,
                 employeeId = ADMIN_USER_ID,
-                additionalInfo = "" // Empty since we're moving items to event_inventory
+                additionalInfo = notes // Empty since we're moving items to event_inventory
             ).enqueue(object : Callback<EventResponse> {
                 override fun onResponse(
                     call: Call<EventResponse>,
@@ -688,7 +691,7 @@ class EventsActivity : AppCompatActivity() {
         val inventoryJson = JSONArray().apply {
             (menuItems + equipmentItems).forEach { (item, quantity) ->
                 put(JSONObject().apply {
-                    put("inventory_id", item.id)
+                    put("inventory_id", item.inventory_id)
                     put("quantity", quantity)
                     put("special_instructions", "")
                 })
@@ -862,6 +865,7 @@ class EventsActivity : AppCompatActivity() {
         val client = clientSpinner.selectedItem as Client
         val summary = getString(
             R.string.event_confirmation_summary,
+            additionalInfo.text,
             eventNameInput.text,
             eventDateInput.text,
             "${eventStartTimeInput.text} - ${eventEndTimeInput.text}",
@@ -912,7 +916,7 @@ class EventsActivity : AppCompatActivity() {
         return JSONArray().apply {
             selectedItems.forEach { (item, quantity) ->
                 put(JSONObject().apply {
-                    put("inventory_id", item.id)
+                    put("inventory_id", item.inventory_id)
                     put("quantity", quantity)
                 })
             }
