@@ -54,25 +54,24 @@ function changeUserDetails($segments) {
         respondWithError("User ID is required and should be numeric", 400);
     }
 
-    // Validate required fields (first_name, last_name, phone_number, email_address, employment_status)
-    $fields = ['first_name', 'last_name', 'phone_number', 'email_address', 'employment_status'];
+    // Validate required fields (first_name, last_name, phone, email, employment_status)
+    $fields = ['first_name', 'last_name', 'phone', 'email', 'employment_status'];
     foreach ($fields as $field) {
         if (!isset($inputData[$field]) || empty($inputData[$field])) {
             respondWithError("Field $field is required", 400);
         }
     }
 
-
     // Update user details
     if (!executeChange(
         "UPDATE users SET first_name = :first_name, last_name = :last_name,
-         phone_number = :phone_number, email_address = :email_address,
+         phone = :phone, email = :email,
          employment_status = :employment_status WHERE user_id = :user_id",
         [
             ':first_name' => $inputData['first_name'],
             ':last_name' => $inputData['last_name'],
-            ':phone_number' => $inputData['phone_number'],
-            ':email_address' => $inputData['email_address'],
+            ':phone' => $inputData['phone'],
+            ':email' => $inputData['email'],
             ':employment_status' => $inputData['employment_status'],
             ':user_id' => $user_id
         ]
@@ -123,5 +122,56 @@ function changeUserRole($segments) {
     }
 
     respondWithSuccess("User role updated successfully", 200);
+}
+
+// Create a new user
+function createUser($segments) {
+    $fieldsAndTypes = [
+        'first_name' => 'string',
+        'last_name' => 'string',
+        'phone' => 'string',
+        'email' => 'email',
+        'employment_status' => 'string',
+        'role' => 'string',
+        'password' => 'string'
+    ];
+
+    $inputData = validateBody($fieldsAndTypes);
+
+    if (!in_array($inputData['employment_status'], ['Active', 'Probation', 'On Leave', 'Exited'])) {
+        respondWithError("Invalid employment status", 400);
+    }
+
+    $existingUser = executeSelect(
+        "SELECT * FROM users WHERE email = :email",
+        [':email' => $inputData['email']],
+        false
+    );
+
+    if ($existingUser) {
+        respondWithError("Email address is already in use", 400);
+    }
+
+    $password_hash = password_hash($inputData['password'], PASSWORD_DEFAULT);
+
+    $result = executeChange(
+        "INSERT INTO users (first_name, last_name, phone, email, employment_status, role, password_hash)
+         VALUES (:first_name, :last_name, :phone, :email, :employment_status, :role, :password_hash)",
+        [
+            ':first_name' => $inputData['first_name'],
+            ':last_name' => $inputData['last_name'],
+            ':phone' => $inputData['phone'],
+            ':email' => $inputData['email'],
+            ':employment_status' => $inputData['employment_status'],
+            ':role' => $inputData['role'],
+            ':password_hash' => $password_hash
+        ]
+    );
+
+    if (!$result) {
+        respondWithError("Failed to create user", 500);
+    }
+
+    respondWithSuccess("User created successfully", 201);
 }
 ?>
