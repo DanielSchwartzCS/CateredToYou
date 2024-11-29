@@ -23,7 +23,7 @@ $routes = [
         'POST' => [
             'refresh' => 'refreshJwt',  // For refreshing JWT using a refresh token
             'logout' => 'markTokenAsExpired'  // For logging out and marking token expired
-        ],
+        ]
     ],
     'client' => [
         'GET' => [
