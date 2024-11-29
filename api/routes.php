@@ -82,7 +82,7 @@ $routes = [
             '' => 'updateInventoryEntry'  // Update entire inventory entry
         ],
         'PATCH' => [
-            '{inventory_id}' => 'updateInventoryQuantity',  // Update quantity of an inventory item
+            '{inventory_id}' => 'updateInventoryQuantity'  // Update quantity of an inventory item
     ]
 ];
 ?>
