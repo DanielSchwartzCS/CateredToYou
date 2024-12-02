@@ -74,6 +74,11 @@ interface ApiConnect {
         @Field("additional_info") additionalInfo: String
     ): Call<EventResponse>
 
+    @POST("delete_event.php")
+    @FormUrlEncoded
+    fun deleteEvent(
+        @Field("event_id") eventId: Int
+    ): Call<DeleteResponse>
 
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
@@ -94,12 +99,6 @@ interface ApiConnect {
 
     @GET("get_event_inventory.php")
     fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
-
-    @POST("delete_event.php")
-    @FormUrlEncoded
-    fun deleteEvent(
-        @Field("event_id") eventId: Int
-    ): Call<DeleteResponse>
 
     @GET("get_raw_inventory.php")
     fun getRawInventory(): Call<List<InventoryItem>>

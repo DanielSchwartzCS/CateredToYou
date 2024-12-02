@@ -50,25 +50,6 @@ function validateResource($segments, $index, $type = 'posInt') {
     return $value;
 }
 
-function validateBody($fieldsAndTypes) {
-    $inputData = json_decode(file_get_contents('php://input'), true);
-
-    // Check for required fields and validate their types
-    foreach ($fieldsAndTypes as $field => $type) {
-        // Check if the field is required and not empty
-        if (!isset($inputData[$field]) || empty($inputData[$field])) {
-            respondWithError("Field $field is required", 400);
-        }
-
-        // Validate the field type
-        if (!validate($inputData[$field], $type)) {
-            respondWithError("Field $field should be of type $type", 400);
-        }
-    }
-
-    return $inputData;
-}
-
 function validateQueryParam($param, $type) {
     $value = $_GET[$param] ?? null;
 
@@ -81,5 +62,35 @@ function validateQueryParam($param, $type) {
     }
 
     return $value;
+}
+
+function validateBody($fieldsAndTypes) {
+    $inputData = json_decode(file_get_contents('php://input'), true);
+
+    if ($inputData === null) {
+        respondWithError("Invalid JSON input", 400);
+    }
+
+    if (!is_array($inputData) || !is_array(reset($inputData))) {
+        $inputData = [$inputData];
+    }
+
+    foreach ($inputData as $row) {
+        validateRow($row, $fieldsAndTypes);
+    }
+
+    return $inputData;
+}
+
+function validateRow($row, $fieldsAndTypes) {
+    foreach ($fieldsAndTypes as $field => $type) {
+        if (!array_key_exists($field, $row)) {
+            respondWithError("Field $field is required", 400);
+        }
+
+        if (gettype($row[$field]) !== $type) {
+            respondWithError("Field $field should be of type $type", 400);
+        }
+    }
 }
 ?>

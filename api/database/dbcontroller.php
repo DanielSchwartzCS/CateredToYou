@@ -1,4 +1,5 @@
 <?php
+//api/database/dbcontroller.php
 require_once 'response.php';
 
 /**
@@ -19,7 +20,7 @@ class DBController {
     function __construct() {
         $this->conn = $this->connectDB();
         if (!$this->conn) {
-            respondWithError("Connection failed!", 500);
+            respondError("Connection failed!", 500);
         }
     }
 
@@ -37,7 +38,7 @@ class DBController {
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $conn;
         } catch (PDOException $e) {
-            respondWithError("Failed to connect to the database: " . $e->getMessage(), 500);
+            respondError("Failed to connect to the database: " . $e->getMessage(), 500);
         }
     }
 
@@ -64,7 +65,7 @@ function executeSelect($query, $params = [], $multipleRows = true) {
         $stmt = $db->conn->prepare($query);
         $stmt->execute($params);
     } catch (PDOException $e) {
-        respondWithError("Failure to execute SELECT query: " . $e->getMessage(), 500);
+        respondError("Failure to execute SELECT query: " . $e->getMessage(), 500);
     }
     return $multipleRows
         ? $stmt->fetchAll(PDO::FETCH_ASSOC)
@@ -72,7 +73,7 @@ function executeSelect($query, $params = [], $multipleRows = true) {
 }
 
 /**
- * Executes an INSERT, UPDATE, or DELETE query on the database.
+ * Executes an UPDATE or DELETE query on the database.
  *
  * @param string $query The SQL query to execute.
  * @param array $params Optional parameters to bind to the query.
@@ -85,7 +86,26 @@ function executeChange($query, $params = []) {
         $stmt->execute($params);
         return $stmt->rowCount();
     } catch (PDOException $e) {
-        respondWithError("Failure to execute query: " . $e->getMessage(), 500);
+        respondError("Failure to execute query: " . $e->getMessage(), 500);
+    }
+}
+
+/**
+ * Executes an INSERT query and returns the last inserted ID.
+ *
+ * @param string $query The SQL INSERT query to execute.
+ * @param array $params Parameters to bind to the query.
+ * @return int|false The last inserted ID, or false on failure.
+ */
+function executeInsert($query, $params = []) {
+    $db = new DBController();
+    try {
+        $stmt = $db->conn->prepare($query);
+        $stmt->execute($params);
+        return $db->conn->lastInsertId();
+    } catch (PDOException $e) {
+        respondError("Failure to execute INSERT query: " . $e->getMessage(), 500);
+        return null;
     }
 }
 ?>

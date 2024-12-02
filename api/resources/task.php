@@ -1,4 +1,5 @@
 <?php
+//api/resources/task.php
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
@@ -67,7 +68,7 @@ function createTask($segments) {
         respondWithError("Required fields are missing", 400);
     }
 
-    if (!executeChange(
+    if (!executeInsert(
         "INSERT INTO tasks (event_id, department_id, task_description, status, due_date)
          VALUES (:event_id, :department_id, :task_description, :status, :due_date)",
         [
@@ -78,7 +79,7 @@ function createTask($segments) {
             ':due_date' => $inputData['due_date']
         ]
     )) {
-        respondWithError("Failed to create task", 500);
-    }
+        respondWithError("Task not inserted into database", 400);
+    };
 }
 ?>

@@ -1,4 +1,5 @@
 <?php
+//api/resources/event.php
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
@@ -31,12 +32,10 @@ function fetchInventoryByEvent($segments) {
 function createInventory($segments) {
     $inputData = json_decode(file_get_contents('php://input'), true);
 
-    // Check if the input is an array of items or a single item
     if (empty($inputData)) {
         respondWithError("No data provided", 400);
     }
 
-    // If it's a single item, convert it into an array for uniform processing
     if (!is_array($inputData)) {
         $inputData = [$inputData];
     }

@@ -1,9 +1,10 @@
 <?php
+//api/resources/client.php
 require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'jwt.php';
 require_once 'auth.php';
-require_once 'validators.php'
+require_once 'validators.php';
 
 function validateClientId($client_id) {
     return is_numeric($client_id) && $client_id > 0;
@@ -57,29 +58,26 @@ function createClient($segments) {
         'email_address' => 'email',
         'billing_address' => 'string',
         'preferred_contact_method' => 'string',
-        'notes' => 'string'
     ];
 
     $data = validateBody($fieldsAndTypes);
 
-    if (executeChange(
+    if (!executeInsert(
         "INSERT INTO Clients (client_name, phone, email_address, billing_address,
         preferred_contact_method, notes) VALUES (:client_name, :phone, :email_address,
-        :billing_address, :preferred_contact_method, :notes)", [
-        ':client_name' => $data['client_name'],
-        ':phone' => $data['phone'],
-        ':email_address' => $data['email_address'],
-        ':billing_address' => $data['billing_address'],
-        ':preferred_contact_method' => $data['preferred_contact_method'],
-        ':notes' => $data['notes']
-    ])) {
-        $newClientId = $db->conn->lastInsertId();
-        respondWithSuccess("Client created successfully with ID: $newClientId", 201);
-    } else {
-        respondWithError("Client was not created", 400);
+        :billing_address, :preferred_contact_method, :notes)",
+        [
+            ':client_name' => $data['client_name'],
+            ':phone' => $data['phone'],
+            ':email_address' => $data['email_address'],
+            ':billing_address' => $data['billing_address'],
+            ':preferred_contact_method' => $data['preferred_contact_method'],
+            ':notes' => $data['notes']
+        ]
+    )) {
+        respondWithError("Client not created", 400);
     }
 }
-
 
 function updateClientDetails($segments) {
     if (!is_array($segments) || empty($segments[0])) {

@@ -1,4 +1,5 @@
 <?php
+//api/resources/user.php
 require_once 'dbcontroller.php';
 require_once 'response.php';
 require_once 'validators.php';

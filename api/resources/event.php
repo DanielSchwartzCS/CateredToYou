@@ -1,4 +1,5 @@
 <?php
+//api/resources/event.php
 require_once 'dbcontroller.php';
 require_once 'response.php';
 
@@ -12,7 +13,7 @@ function fetchEvents($segments) {
     } else {
         $event_id = validateResource($segments, 0);
         $result = executeSelect("SELECT * FROM events WHERE event_id = :event_id",
-        [':event_id' => $eventId], false);
+        [':event_id' => $event_id], false);
 
         if (!$result) {
             respondWithError("Event not found", 204);
@@ -52,7 +53,7 @@ function createEvent() {
 
 // Update an existing event
 function updateEvent($segments) {
-    $eventId = validateResource($segments, 0, 'posInt');
+    $event_id = validateResource($segments, 0, 'posInt');
 
     $fieldsAndTypes = [
         'event_description' => 'string',
@@ -75,7 +76,7 @@ function updateEvent($segments) {
 
     // Prepare the parameters for the query
     $params = [
-        ':event_id' => $eventId,
+        ':event_id' => $event_id,
         ':event_description' => $data['event_description'],
         ':event_date' => $data['event_date'],
         ':event_time' => $data['event_time'],
@@ -91,10 +92,10 @@ function updateEvent($segments) {
 
 // Delete an event. Should likely never be used. TODO: implement archive
 function deleteEvent($segments) {
-    $eventId = validateResource($segments, 0, 'posInt');
+    $event_id = validateResource($segments, 0, 'posInt');
 
     if (!executeChange("DELETE FROM events WHERE event_id = :event_id",
-        [':event_id' => $eventId]
+        [':event_id' => $event_id]
     )) {
         respondWithError("Event not deleted", 204);
     }
