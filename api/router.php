@@ -29,7 +29,7 @@ if (isset($routes[$resource][$method][$segments[0]])) {
     respondWithError("Sub-route not defined in resource: $resource", 405);
 }
 
-require_once "$resource.php";
+require_once "resources/$resource.php";
 
 if (!function_exists($function)) {
     respondWithError("Function does not exist in resource: $resource", 405);
