@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="event_statuses">
-        <item>pending</item>
-        <item>confirmed</item>
-        <item>completed</item>
-        <item>canceled</item>
+        <item>Planned</item>
+        <item>In Progress</item>
+        <item>Completed</item>
+        <item>Canceled</item>
     </string-array>
 </resources>
