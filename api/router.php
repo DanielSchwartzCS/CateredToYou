@@ -1,10 +1,8 @@
 <?php
-require_once 'response.php';
-require_once 'routes.php';
-require_once 'permissions.php'; // Resource permissions
-require_once '/data-processors/input.php';
-require_once 'auth.php'; // Handle token validation
-
+require_once __DIR__ . '/utils/response.php';  // Correct the path for response.php
+require_once __DIR__ . '/routes.php';
+require_once __DIR__ . '/data-processors/input.php';
+require_once __DIR__ . '/resources/auth.php'; // Handle token validation
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Credentials: true");
@@ -24,7 +22,6 @@ $resource = array_shift($segments);
 if (!isset($routes[$resource])) {
     respondError("Resource not found: $resource", 404);
 }
-
 if (!isset($routes[$resource][$method])) {
     respondError("HTTP Method not allowed for resource: $resource", 405);
 }
@@ -88,34 +85,25 @@ if (!$devMode && !$isPublicEndpoint) {
 
 // Match the sub-route pattern
 foreach ($routes[$resource][$method] as $pattern => $function) {
-    if (preg_match('/\{([a-z_]+)\}/', $pattern)) {
-        // Replace placeholders with regex groups for matching
+
+    $function = $function['handler'];
+
+    if (preg_match_all('/\{([a-z_]+)\}/', $pattern, $matches)) {
         $routeRegex = preg_replace('/\{[a-z_]+\}/', '([^/]+)', $pattern);
-        if (preg_match("#^$routeRegex$#", $subRoute, $matches)) {
+        if (preg_match("#^$routeRegex$#", $subRoute, $params)) {
             $routeKey = $function;
-            $resourceId = $matches[1];
-
-            // Validate resource ID
-            if (!ctype_digit($resourceId) || (int)$resourceId <= 0) {
-                respondError("Resource ID must be a positive integer.", 400);
-            }
-
-            $resourceId = (int)$resourceId;
             break;
         }
     } elseif ($pattern === $subRoute) {
-        // Match static routes
         $routeKey = $function;
         break;
     }
 }
-
 if (!$routeKey) {
     respondError("Route not found: $subRoute", 404);
 }
 
 require_once "resources/$resource.php";
-
 if (!function_exists($routeKey)) {
     respondError("Function does not exist: $routeKey", 405);
 }

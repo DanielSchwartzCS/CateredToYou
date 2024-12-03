@@ -5,8 +5,8 @@ require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/jwt.php';
 require_once __DIR__ . '/../utils/token.php';
 require_once __DIR__ . '/../data-processors/input.php';
+function login($param = null) {
 
-function login() {
     $requiredFields = [
         'username' => 'string',
         'password' => 'string'
@@ -15,7 +15,6 @@ function login() {
     $data = getValidHttpBody($requiredFields)[0];
     $username = $data['username'];
     $password = $data['password'];
-
     $userData = executeSelect(
         "SELECT user_id, password_hash, role FROM users WHERE username = :username",
         [':username' => $username],
@@ -28,8 +27,7 @@ function login() {
         // Create and store refresh token
         $refreshToken = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', time() + 86400); // 1-day expiration for refresh token
-        storeRefreshToken($userData['user_id'], $refreshToken, $expiresAt);
-
+	storeRefreshToken($userData['user_id'], $userData['role']);
         respondSuccess([
             'jwt' => $jwt,
             'refresh_token' => $refreshToken

@@ -1,6 +1,7 @@
 <?php
 // api/data-processors/input.php
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/extractors.php';
 
 function validateType($value, $type) {
     switch ($type) {
