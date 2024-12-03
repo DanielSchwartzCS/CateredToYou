@@ -54,32 +54,4 @@
             android:text="All Tasks"/>
     </LinearLayout>
 
-
-    <!--    <EditText-->
-    <!--        android:id="@+id/input_task"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="48dp"-->
-    <!--        android:layout_marginTop="24dp"-->
-    <!--        android:hint="Enter task"-->
-    <!--        android:inputType="text" />-->
-
-
-    <!--    &lt;!&ndash; Add task button &ndash;&gt;-->
-    <!--    <Button-->
-    <!--        android:id="@+id/add_task_button"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="8dp"-->
-    <!--        android:text="Add Task" />-->
-
-
-    <!--    &lt;!&ndash; Back button &ndash;&gt;-->
-    <!--    <Button-->
-    <!--        android:id="@+id/back_to_MainActivity"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="16dp"-->
-    <!--        android:text="Back" />-->
-
-
 </LinearLayout>

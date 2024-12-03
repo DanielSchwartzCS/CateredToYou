@@ -22,7 +22,7 @@ import android.widget.LinearLayout
 
 class TaskAdapter(
     private val tasks: MutableList<TaskItem>,
-    private val onComplete: (Int) -> Unit
+    private val onComplete: (Int, String) -> Unit
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>(){
 
     fun updateTasks(newTasks: List<TaskItem>) {
@@ -50,19 +50,33 @@ class TaskAdapter(
             taskName.text = task.task_name
             taskDescription.text = task.task_description
             dueDate.text = "Due Date: ${task.due_date}"
-            if(task.status == "Complete"){
-                checkMark.visibility = View.VISIBLE
-                taskLayout.alpha = 0.5f
-                completeButton.visibility = View.GONE
-            }else{
+
+            when(task.status){
+                "to_do" -> {
+                    completeButton.text = "Start"
+                    completeButton.setBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.holo_blue_dark))
+                    completeButton.setOnClickListener{
+                        updateTaskStatus(task, "in_progress")
+                    }
+                }
+                "in_progress" -> {
+                    completeButton.text = "Complete"
+                    completeButton.setBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.holo_red_dark))
+                    completeButton.setOnClickListener{
+                        updateTaskStatus(task, "complete")
+                    }
+                }
+                "complete" -> {
+                    checkMark.visibility = View.VISIBLE
+                    taskLayout.alpha = 0.5f
+                    completeButton.visibility = View.GONE
+                }
+            }
+            if (task.status != "complete"){
                 checkMark.visibility = View.GONE
                 taskLayout.alpha = 1f
                 completeButton.visibility = View.VISIBLE
             }
-            completeButton.setOnClickListener {onComplete(task.task_id)}
-
-
-
 
         }
     }
@@ -91,6 +105,10 @@ class TaskAdapter(
     // Return the number of items in the filtered list
     override fun getItemCount(): Int {
         return tasks.size
+    }
+
+    private fun updateTaskStatus(task: TaskItem, newStatus:String){
+        onComplete(task.task_id, newStatus)
     }
 
 

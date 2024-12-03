@@ -57,7 +57,10 @@ interface ApiConnect {
 
     @FormUrlEncoded
     @POST("update_task_status.php")
-    fun updateTasks(@Field("task_id") taskId: Int): Call<Void>
+    fun updateTasks(
+        @Field("task_id") taskId: Int,
+        @Field("status") status: String
+    ): Call<Void>
 
 
     @GET("get_employees.php")
