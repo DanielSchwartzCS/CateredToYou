@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -52,6 +53,7 @@ class InventoryAdapter(
         } else {
             items.filter { it.category.equals(currentCategory, ignoreCase = true) }
         }
+        notifyDataSetChanged()
     }
 
     fun clearSelections() {
@@ -100,11 +102,13 @@ class InventoryAdapter(
         }
 
         fun bind(item: InventoryItem) {
+            Log.d("InventoryAdapter", "Binding item: ${item.item_name} with selected quantity: ${selectedQuantities[item.inventory_id]}")
             setupBasicInfo(item)
             setupQuantityPicker(item)
             setupCategoryChip(item)
             setupAvailabilityIndicator(item)
             setupCardState(item)
+
         }
 
         private fun setupBasicInfo(item: InventoryItem) {
@@ -136,7 +140,12 @@ class InventoryAdapter(
             quantityPicker.apply {
                 minValue = 0
                 maxValue = item.quantity_in_stock.toInt()
+
+                setOnValueChangedListener(null)
+
                 value = selectedQuantities[item.inventory_id] ?: 0
+
+
                 setOnValueChangedListener { _, _, newVal ->
                     updateQuantity(item, newVal)
                 }
@@ -145,6 +154,9 @@ class InventoryAdapter(
 
         private fun updateQuantity(item: InventoryItem, newVal: Int) {
             selectedQuantities[item.inventory_id] = newVal
+
+            Log.d("InventoryAdapter", "Updated ${item.item_name} to $newVal")
+            Log.d("InventoryAdapter", "All selections: $selectedQuantities")
 
             // Debounce the updates to prevent rapid firing
             updateRunnable?.let { updateHandler.removeCallbacks(it) }

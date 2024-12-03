@@ -303,14 +303,14 @@ data class TokenResponse(
 )
 
 data class InventoryItem(
-    val inventory_id: Int,
-    val item_name: String,
-    val category: String,
-    val display_unit: String?,
-    val quantity_in_stock: Float,
-    val cost_per_unit: Float,
-    val location_id: Int,
-    val notes: String?,
+    @SerializedName("inventory_id") val inventory_id: Int,
+    @SerializedName("item_name") val item_name: String,
+    @SerializedName("category") val category: String,
+    @SerializedName("display_unit") val display_unit: String?,
+    @SerializedName("quantity_in_stock") val quantity_in_stock: Float,
+    @SerializedName("cost_per_unit") val cost_per_unit: Float,
+    @SerializedName("location_id") val location_id: Int,
+    @SerializedName("notes") val notes: String?,
 ) {
     override fun toString(): String = item_name
 }

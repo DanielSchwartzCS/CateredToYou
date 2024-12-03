@@ -42,48 +42,48 @@ class EventsActivity : AppCompatActivity() {
         private const val STATE_GUESTS = "guests"
         private const val STATE_STATUS_POSITION = "status_position"
         private const val STATE_CLIENT_POSITION = "client_position"
-        private fun submitEventInventory(eventsActivity: EventsActivity, eventId: Int) {
-            val inventoryJson = JSONArray().apply {
-                val selectedItems = eventsActivity.menuItemsAdapter.getSelectedItems() + eventsActivity.equipmentAdapter.getSelectedItems()
-                selectedItems.forEach { (item, quantity) ->
-                    put(JSONObject().apply {
-                        put("inventory_id", item.inventory_id)
-                        put("quantity", quantity)
-                    })
-                }
-            }.toString()
-
-            Log.d(TAG, "Submitting inventory for event $eventId: $inventoryJson")
-
-            DatabaseApi.retrofitService.addEventInventory(eventId, inventoryJson)
-                .enqueue(object : Callback<BaseResponse> {
-                    override fun onResponse(
-                        call: Call<BaseResponse>,
-                        response: Response<BaseResponse>
-                    ) {
-                        if (response.isSuccessful && response.body()?.status == true) {
-                            eventsActivity.showSuccess(eventsActivity.getString(R.string.success))
-                            eventsActivity.clearInputs()
-                        } else {
-                            eventsActivity.handleErrorResponse("Failed to save inventory items", response)
-                        }
-                        eventsActivity.hideProgressBar()
-                    }
-
-                    override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                        eventsActivity.handleNetworkError("Network error while saving inventory", t)
-                        eventsActivity.hideProgressBar()
-                    }
-                })
-        }
-
-        private fun createAdditionalInfo(eventsActivity: EventsActivity): String {
-            return JSONObject().apply {
-                put("menu_items", eventsActivity.menuItemsAdapter.getSelectedItems().size)
-                put("equipment_items", eventsActivity.equipmentAdapter.getSelectedItems().size)
-                put("created_at", System.currentTimeMillis())
-            }.toString()
-        }
+//        private fun submitEventInventory(eventsActivity: EventsActivity, eventId: Int) {
+//            val inventoryJson = JSONArray().apply {
+//                val selectedItems = eventsActivity.menuItemsAdapter.getSelectedItems() + eventsActivity.equipmentAdapter.getSelectedItems()
+//                selectedItems.forEach { (item, quantity) ->
+//                    put(JSONObject().apply {
+//                        put("inventory_id", item.inventory_id)
+//                        put("quantity", quantity)
+//                    })
+//                }
+//            }.toString()
+//
+//            Log.d(TAG, "Submitting inventory for event $eventId: $inventoryJson")
+//
+//            DatabaseApi.retrofitService.addEventInventory(eventId, inventoryJson)
+//                .enqueue(object : Callback<BaseResponse> {
+//                    override fun onResponse(
+//                        call: Call<BaseResponse>,
+//                        response: Response<BaseResponse>
+//                    ) {
+//                        if (response.isSuccessful && response.body()?.status == true) {
+//                            eventsActivity.showSuccess(eventsActivity.getString(R.string.success))
+//                            eventsActivity.clearInputs()
+//                        } else {
+//                            eventsActivity.handleErrorResponse("Failed to save inventory items", response)
+//                        }
+//                        eventsActivity.hideProgressBar()
+//                    }
+//
+//                    override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+//                        eventsActivity.handleNetworkError("Network error while saving inventory", t)
+//                        eventsActivity.hideProgressBar()
+//                    }
+//                })
+//        }
+//
+//        private fun createAdditionalInfo(eventsActivity: EventsActivity): String {
+//            return JSONObject().apply {
+//                put("menu_items", eventsActivity.menuItemsAdapter.getSelectedItems().size)
+//                put("equipment_items", eventsActivity.equipmentAdapter.getSelectedItems().size)
+//                put("created_at", System.currentTimeMillis())
+//            }.toString()
+//        }
     }
 
     // UI Components
@@ -357,6 +357,10 @@ class EventsActivity : AppCompatActivity() {
             }
 
             runOnUiThread {
+
+                Log.d(TAG, "Menu Items: ${menuItems.map { it.inventory_id to it.item_name }}")
+                Log.d(TAG, "Equipment Items: ${equipmentItems.map { it.inventory_id to it.item_name }}")
+
                 menuItemsAdapter.updateItems(menuItems.toMutableList())
                 equipmentAdapter.updateItems(equipmentItems.toMutableList())
                 updateAddEventButtonState()
@@ -690,6 +694,7 @@ class EventsActivity : AppCompatActivity() {
 
         val inventoryJson = JSONArray().apply {
             (menuItems + equipmentItems).forEach { (item, quantity) ->
+                Log.d(TAG, "Item ID: ${item.inventory_id}, Quantity: $quantity")
                 put(JSONObject().apply {
                     put("inventory_id", item.inventory_id)
                     put("quantity", quantity)
