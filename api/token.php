@@ -21,7 +21,7 @@ function expireOldTokens($userId) {
     if (!executeChange("UPDATE refresh_tokens SET is_expired = TRUE WHERE user_id = :user_id AND is_expired = FALSE", [
         ':user_id' => $userId
     ])) {
-        respondWithError("Failed to expire old tokens:", 500);
+        //respondWithError("Failed to expire old tokens:", 500);
     }
 }
 

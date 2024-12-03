@@ -171,9 +171,14 @@ data class LoginRequest(
 data class LoginResponse(
     val status: Boolean,
     val message: String,
-    val token: String? = null,
-    val refreshToken: String? = null
+    val data: LoginData?
 )
+
+data class LoginData(
+    val jwt: String,
+    val refresh_token: String
+)
+
 
 data class RefreshRequest(
     val refreshToken: String
