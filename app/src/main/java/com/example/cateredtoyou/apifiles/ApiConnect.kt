@@ -1,122 +1,138 @@
 package com.example.cateredtoyou.apifiles
 
 import android.util.Log
-import com.example.cateredtoyou.Client
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.http.GET
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
-
 // Url for the AWS web server
-private const val BASE_URL = "http://54.219.249.27/"
-
-// Lots of functions to connect to an api that returns a json file
-private val retrofit = Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
-    .baseUrl(BASE_URL)
-    .build()
+private const val BASE_URL = "http://54.219.249.27/api/"
 
 // interface for all of the functions that call the API
 interface ApiConnect {
+    // Authentication Endpoints
     @Headers("Content-Type: application/json")
-    @POST("auth")
+    @POST("auth/login")
     fun loginCheck(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
-
-    @FormUrlEncoded
-    @POST("add_employee.php")
-    fun addUser(
-        @Field("username") username: String,
-        @Field("password") password: String
-
-    ): Call<AddUserResponse>
-
-
-    @GET("get_employees.php")
-    fun getUser(): Call<List<User>>
-
-    @FormUrlEncoded
-    @POST("add_client.php")
-    fun addClient(
-        @Field("firstname") firstname: String,
-        @Field("lastname") lastname: String,
-        @Field("email") email : String,
-        @Field("phonenumber") phonenumber : String
-    ): Call<AddClientResponse>
-
-    @GET("get_clients.php")
-    fun getClient(): Call<List<Client>>
-
-    @FormUrlEncoded
-    @POST("add_event.php")
-    fun addEvent(
-        @Field("name") name: String,
-        @Field("event_date") eventDate: String,
-        @Field("event_start_time") startTime: String,
-        @Field("event_end_time") endTime: String,
-        @Field("location") location: String,
-        @Field("status") status: String,
-        @Field("number_of_guests") numberOfGuests: Int,
-        @Field("client_id") clientId: Int,
-        @Field("employee_id") employeeId: Int,
-        @Field("additional_info") additionalInfo: String
-    ): Call<EventResponse>
-
-    @POST("delete_event.php")
-    @FormUrlEncoded
-    fun deleteEvent(
-        @Field("event_id") eventId: Int
-    ): Call<DeleteResponse>
-
-    @GET("get_events.php")
-    fun getEvents(): Call<EventsResponse>
-
-    @GET("get_inventory.php")
-    fun getInventory(): Call<List<InventoryItem>>
-
-    @FormUrlEncoded
-    @POST("add_event_inventory.php")
-    fun addEventInventory(
-        @Field("event_id") eventId: Int,
-        @Field("inventory_items") inventoryItems: String
-    ): Call<BaseResponse>
-
-    @POST("/refreshtoken")
-    suspend fun refreshToken(@Body refreshRequest: RefreshRequest): Response<TokenResponse>
-
-
-    @GET("get_event_inventory.php")
-    fun getEventInventory(@Query("event_id") eventId: Int): Call<EventInventoryResponse>
-
-    @GET("get_raw_inventory.php")
-    fun getRawInventory(): Call<List<InventoryItem>>
-
-    @POST("update_inventory.php")
     @Headers("Content-Type: application/json")
-    fun updateInventory(@Body request: UpdateInventoryRequest): Call<BaseResponse>
+    @POST("auth/refresh")
+    fun refreshToken(@Body refreshRequest: RefreshRequest): Call<RefreshTokenResponse>
 
-    companion object {
-        fun refreshToken(refreshToken: String): Any {
-            return TODO("Provide the return value")
-        }
-    }
+    @Headers("Content-Type: application/json")
+    @POST("auth/logout")
+    fun logout(@Body logoutRequest: LogoutRequest): Call<Void>
 
+    // User Endpoints
+    @POST("users")
+    fun addUser(@Body userData: UserRequest): Call<UserResponse>
 
+    @GET("users")
+    fun getAllUsers(): Call<List<User>>
+
+    @GET("users/{userId}")
+    fun getUserById(@Path("userId") userId: Int): Call<User>
+
+    @PUT("users/{userId}")
+    fun updateUserDetails(
+        @Path("userId") userId: Int,
+        @Body userDetails: UpdateUserRequest
+    ): Call<Void>
+
+    @PUT("users/{userId}/role")
+    fun updateUserRole(
+        @Path("userId") userId: Int,
+        @Body roleUpdate: RoleUpdateRequest
+    ): Call<Void>
+
+    @PUT("users/{userId}/password")
+    fun updatePassword(
+        @Path("userId") userId: Int,
+        @Body passwordUpdate: PasswordUpdateRequest
+    ): Call<Void>
+
+    @PUT("users/{userId}/status")
+    fun updateEmploymentStatus(
+        @Path("userId") userId: Int,
+        @Body statusUpdate: EmploymentStatusUpdateRequest
+    ): Call<Void>
+
+    // Client Endpoints
+    @POST("clients")
+    fun addClient(@Body clientData: ClientRequest): Call<ClientResponse>
+
+    @GET("clients")
+    fun getAllClients(): Call<List<Client>>
+
+    @GET("clients/{clientId}")
+    fun getClientById(@Path("clientId") clientId: Int): Call<Client>
+
+    @PUT("clients/{clientId}")
+    fun updateClientDetails(
+        @Path("clientId") clientId: Int,
+        @Body clientDetails: ClientUpdateRequest
+    ): Call<Void>
+
+    // Event Endpoints
+    @POST("events")
+    fun addEvent(@Body eventData: EventRequest): Call<EventResponse>
+
+    @GET("events")
+    fun getAllEvents(): Call<List<Event>>
+
+    @GET("events/{eventId}")
+    fun getEventById(@Path("eventId") eventId: Int): Call<Event>
+
+    @PUT("events/{eventId}")
+    fun updateEvent(
+        @Path("eventId") eventId: Int,
+        @Body eventDetails: EventUpdateRequest
+    ): Call<Void>
+
+    @GET("events/client/{clientId}")
+    fun getEventsByClient(@Path("clientId") clientId: Int): Call<List<Event>>
+
+    // Inventory Endpoints
+    @POST("inventory")
+    fun addInventoryItem(@Body inventoryData: InventoryItemRequest): Call<InventoryItemResponse>
+
+    @GET("inventory")
+    fun getAllInventoryItems(): Call<List<InventoryItem>>
+
+    @GET("inventory/{inventoryId}")
+    fun getInventoryItemById(@Path("inventoryId") inventoryId: Int): Call<InventoryItem>
+
+    @PUT("inventory/{inventoryId}")
+    fun updateInventoryItem(
+        @Path("inventoryId") inventoryId: Int,
+        @Body inventoryDetails: InventoryItemUpdateRequest
+    ): Call<Void>
+
+    @PUT("inventory/{inventoryId}/quantity")
+    fun updateInventoryQuantity(
+        @Path("inventoryId") inventoryId: Int,
+        @Body quantityUpdate: QuantityUpdateRequest
+    ): Call<Void>
+
+    @GET("inventory/event/{eventId}")
+    fun getInventoryByEvent(@Path("eventId") eventId: Int): Call<List<EventInventoryItem>>
 }
 
-// the connection object
+// Connection object for API
 object DatabaseApi {
     val retrofitService: ApiConnect by lazy {
         val logging = HttpLoggingInterceptor().apply {
@@ -140,180 +156,206 @@ object DatabaseApi {
             .create(ApiConnect::class.java)
     }
 }
-// Data classes for the different responses based on the call
 
-data class AddUserResponse(
-    val status: String,
-    val message: String
-)
-
-data class User(
-    @SerializedName("user_id") val userId: Int,
-    val username: String,
-    val password: String? = null,
-    val email: String? = null,
-    val phone: String? = null,
-    val role: String? = null,
-    @SerializedName("first_name")
-    val firstName: String,
-    @SerializedName("last_name")
-    val lastName: String
-) {
-    override fun toString(): String = "$firstName $lastName ($role)"
-}
-
+// Request and Response Data Classes
 data class LoginRequest(
     val username: String,
     val password: String
 )
 
 data class LoginResponse(
-    val status: Boolean,
-    val message: String,
-    val token: String? = null,
-    val refreshToken: String? = null
+    val status: String,
+    val data: LoginData?
+)
+
+data class LoginData(
+    val jwt: String,
+    val refreshToken: String
 )
 
 data class RefreshRequest(
     val refreshToken: String
 )
 
-
-data class AddClientResponse(
-    val status: Boolean,
-    val message: String
-)
-
-fun clientCall(
-    onSuccess: (List<Client>) -> Unit,
-    onFailure: (Throwable) -> Unit = {t -> Log.e("ApiConnect", "Failed to connect", t)}
-){
-    DatabaseApi.retrofitService.getClient().enqueue(object : Callback<List<Client>> {
-        override fun onResponse(call: Call<List<Client>>, response: Response<List<Client>>) {
-            if (response.isSuccessful) {
-                val rawResponse = response.body() ?: emptyList()
-                onSuccess(rawResponse)
-            }else{
-                onFailure(Throwable("Failed to load clients: ${response.message()}"))
-            }
-        }
-
-        override fun onFailure(call: Call<List<Client>>, t: Throwable) {
-            onFailure(t)
-        }
-    })
-}
-fun addClient(
-    firstname: String,
-    lastname: String,
-    email: String,
-    phonenumber: String,
-    onSuccess: (AddClientResponse) -> Unit,
-    onPartialSuccess: (AddClientResponse) -> Unit,
-    onFailure: (Throwable) -> Unit
-){
-    DatabaseApi.retrofitService.addClient(firstname, lastname, email, phonenumber).enqueue(object : Callback<AddClientResponse>{
-        override fun onResponse(
-            call: Call<AddClientResponse>,
-            response: Response<AddClientResponse>
-        ) {
-            if(response.isSuccessful){
-                val rawResponse = response.body()
-                if (rawResponse != null && rawResponse.status) {
-                    onSuccess(rawResponse)
-                }else if(rawResponse != null){
-                    onPartialSuccess(rawResponse)
-                }
-            }else{
-                onFailure(Throwable("Failed to add client: ${response.message()}"))
-            }
-        }
-
-        override fun onFailure(call: Call<AddClientResponse>, t: Throwable) {
-            onFailure(t)
-        }
-    })
-
-}
-
-data class EventResponse(
-    @SerializedName("status") val status: Boolean,
-    @SerializedName("message") val message: String,
-    @SerializedName("event_id") val eventId: Int?
-)
-
-data class EventsResponse(
-    val status: Boolean,
-    val events: List<EventData>? = null,
-    val message: String? = null
-)
-
-data class EventData(
-    val id: Int,
-    val name: String,
-    val eventDate: String,
-    val eventStartTime: String,
-    val eventEndTime: String,
-    val location: String,
+data class RefreshTokenResponse(
     val status: String,
-    val numberOfGuests: Int,
-    val client: ClientData,
-    val employeeId: Int,
-    val additionalInfo: String?
+    val data: RefreshTokenData?
 )
 
-data class ClientData(
-    val id: Int,
-    val firstname: String,
-    val lastname: String,
-    val email: String,
-    val phonenumber: String
+data class RefreshTokenData(
+    val jwt: String
 )
 
-data class TokenResponse(
-    val accessToken: String,
+data class LogoutRequest(
     val refreshToken: String
 )
 
-data class InventoryItem(
-    @SerializedName("id") val id: Int,
-    @SerializedName("item_name") val itemName: String,
-    @SerializedName("quantity") val quantity: Int,
-    @SerializedName("category") val category: String,
-    @SerializedName("unit_of_measurement") val unitOfMeasurement: String?,
-    @SerializedName("cost_per_unit") val costPerUnit: Double?,
-    @SerializedName("minimum_stock") val minimumStock: Int?,
-    @SerializedName("notes") val notes: String?,
-    @SerializedName("last_restocked") val lastRestocked: String?,
-    @SerializedName("updated_at") val updatedAt: String?
-) {
-    override fun toString(): String = itemName
-}
-
-
-data class BaseResponse(
-    val status: Boolean,
-    val message: String
+data class UserRequest(
+    @SerializedName("first_name") val firstName: String,
+    @SerializedName("last_name") val lastName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("employment_status") val employmentStatus: String,
+    val role: String,
+    val password: String
 )
 
-data class EventInventoryResponse(
-    val status: Boolean,
-    val message: String?,
-    val items: List<EventInventoryItem>?
+data class UserResponse(
+    val status: String,
+    val data: UserResponseData?
+)
+
+data class UserResponseData(
+    @SerializedName("user_id") val userId: Int
+)
+
+data class User(
+    @SerializedName("user_id") val userId: Int,
+    @SerializedName("first_name") val firstName: String,
+    @SerializedName("last_name") val lastName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("employment_status") val employmentStatus: String,
+    val role: String
+)
+
+data class UpdateUserRequest(
+    @SerializedName("first_name") val firstName: String,
+    @SerializedName("last_name") val lastName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("employment_status") val employmentStatus: String
+)
+
+data class RoleUpdateRequest(
+    val role: String
+)
+
+data class PasswordUpdateRequest(
+    @SerializedName("new_password") val newPassword: String
+)
+
+data class EmploymentStatusUpdateRequest(
+    @SerializedName("employment_status") val employmentStatus: String
+)
+
+data class ClientRequest(
+    @SerializedName("client_name") val clientName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("billing_address") val billingAddress: String,
+    @SerializedName("preferred_contact_method") val preferredContactMethod: String,
+    val notes: String
+)
+
+data class ClientResponse(
+    val status: String,
+    val data: ClientResponseData?
+)
+
+data class ClientResponseData(
+    @SerializedName("client_id") val clientId: Int
+)
+
+data class Client(
+    @SerializedName("client_id") val clientId: Int,
+    @SerializedName("client_name") val clientName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("billing_address") val billingAddress: String,
+    @SerializedName("preferred_contact_method") val preferredContactMethod: String,
+    val notes: String
+)
+
+data class ClientUpdateRequest(
+    @SerializedName("client_name") val clientName: String,
+    val phone: String,
+    val email: String,
+    @SerializedName("billing_address") val billingAddress: String,
+    @SerializedName("preferred_contact_method") val preferredContactMethod: String,
+    val notes: String
+)
+
+data class EventRequest(
+    @SerializedName("event_description") val eventDescription: String,
+    @SerializedName("event_date") val eventDate: String,
+    @SerializedName("event_time") val eventTime: String,
+    val location: String,
+    @SerializedName("num_guests") val numGuests: Int,
+    val notes: String
+)
+
+data class EventResponse(
+    val status: String,
+    val data: EventResponseData?
+)
+
+data class EventResponseData(
+    @SerializedName("event_id") val eventId: Int
+)
+
+data class Event(
+    @SerializedName("event_id") val eventId: Int,
+    @SerializedName("event_description") val eventDescription: String,
+    @SerializedName("event_date") val eventDate: String,
+    @SerializedName("event_time") val eventTime: String,
+    val location: String,
+    @SerializedName("num_guests") val numGuests: Int,
+    val notes: String
+)
+
+data class EventUpdateRequest(
+    @SerializedName("event_description") val eventDescription: String,
+    @SerializedName("event_date") val eventDate: String,
+    @SerializedName("event_time") val eventTime: String,
+    val location: String,
+    @SerializedName("num_guests") val numGuests: Int,
+    val notes: String
+)
+
+data class InventoryItemRequest(
+    @SerializedName("item_name") val itemName: String,
+    val unit: String,
+    @SerializedName("display_unit") val displayUnit: String,
+    @SerializedName("quantity_in_stock") val quantityInStock: Int,
+    @SerializedName("location_id") val locationId: Int
+)
+
+data class InventoryItemResponse(
+    val status: String,
+    val data: InventoryItemResponseData?
+)
+
+data class InventoryItemResponseData(
+    @SerializedName("inventory_ids") val inventoryIds: List<Int>
+)
+
+data class InventoryItem(
+    @SerializedName("inventory_id") val inventoryId: Int,
+    @SerializedName("item_name") val itemName: String,
+    val unit: String,
+    @SerializedName("display_unit") val displayUnit: String,
+    @SerializedName("quantity_in_stock") val quantityInStock: Int,
+    @SerializedName("location_id") val locationId: Int
+)
+
+data class InventoryItemUpdateRequest(
+    @SerializedName("item_name") val itemName: String,
+    val unit: String,
+    @SerializedName("display_unit") val displayUnit: String,
+    @SerializedName("quantity_in_stock") val quantityInStock: Int,
+    @SerializedName("location_id") val locationId: Int
+)
+
+data class QuantityUpdateRequest(
+    @SerializedName("quantity_in_stock") val quantityInStock: Int
 )
 
 data class EventInventoryItem(
-    val id: Int,
-    val itemName: String,
+    @SerializedName("inventory_id") val inventoryId: Int,
+    @SerializedName("item_name") val itemName: String,
     val quantity: Int,
-    val category: String?,
-    val unitOfMeasurement: String?
-)
-data class DeleteResponse(
-    val status: Boolean,
-    val message: String
-)
-data class UpdateInventoryRequest(
-    @SerializedName("id") val id: Int,
-    @SerializedName("quantity") val quantity: Int
+    val unit: String,
+    @SerializedName("display_unit") val displayUnit: String,
+    @SerializedName("location_id") val locationId: Int
 )
