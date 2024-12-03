@@ -12,6 +12,8 @@ function validateType($value, $type) {
             return filter_var($value, FILTER_VALIDATE_INT) !== false;
         case 'float':
             return filter_var($value, FILTER_VALIDATE_FLOAT) !== false;
+        case 'decimal':
+            return preg_match('/^\d+(\.\d{1,2})?$/', $value);
         case 'string':
             return is_string($value) && trim($value) !== '';
         case 'email':
@@ -67,23 +69,14 @@ function getValidQueryParams($requiredFields = []) {
     return validateData($_GET, $requiredFields);
 }
 
-function validateResourceSegments($segments, $requiredFields = []) {
-    $validatedSegments = [];
+function getValidResource($segments, $index, $type = 'posInt') {
+    $value = $segments[$index] ?? null;
 
-    foreach ($requiredFields as $index => $type) {
-        $value = $segments[$index] ?? null;
-
-        if ($value === null) {
-            respondError("Segment at index $index is required", 400);
-        }
-
-        if (!validateType($value, $type)) {
-            respondError("Invalid segment at index $index. Expected type: $type", 400);
-        }
-
-        $validatedSegments[] = $value;
+    if (!validateType($value, $type)) {
+        respondError("Invalid resource at index $index. Expected type: $type.", 400);
     }
 
-    return $validatedSegments;
+    return $value;
 }
+
 ?>

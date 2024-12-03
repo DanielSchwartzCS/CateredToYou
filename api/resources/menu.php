@@ -1,137 +1,80 @@
 <?php
-//api/resources/menu.php
-require_once 'dbcontroller.php';
-require_once 'response.php';
+// api/resources/menu.php
+require_once __DIR__ . '/../database/dbcontroller.php';
+require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../data-processors/input.php';
 
 // Fetch all menu items
 function fetchMenuItems() {
-    try {
-        // Fetch all menu items from the database
-        $menuItems = executeSelect("SELECT * FROM menu_items");
-        respondWithSuccess("Menu items retrieved", 200, $menuItems);
-    } catch (Exception $e) {
-        respondWithError("Failed to fetch menu items: " . $e->getMessage(), 500);
+    $menuItems = executeSelect("SELECT * FROM menu_items");
+
+    if (empty($menuItems)) {
+        respondSuccess(null, 204);
     }
+
+    respondSuccess($menuItems);
 }
 
-function fetchEventMenuItems($segments) {
-    $eventId = $segments[1] ?? null;
+// Fetch menu items for a specific event
+//TODO: sql logic is completely wrong here, this is just a placeholder
+function fetchEventMenuItems($eventId) {
+    $menuItems = executeSelect(
+        "SELECT mi.menu_item_id, mi.item_name, mi.item_type, mi.item_fancy_description, mi.item_price
+         FROM event_menu em
+         JOIN menu_items mi ON em.menu_item_id = mi.menu_item_id
+         WHERE em.event_id = :event_id",
+        [':event_id' => $eventId]
+    );
 
-    if (empty($eventId)) {
-        respondWithError("Event ID is required", 400);
+    if (empty($menuItems)) {
+        respondError("No menu items found for the specified event", 204);
     }
 
-    try {
-        // Fetch menu items associated with a specific event
-        $menuItems = executeSelect(
-            "SELECT mi.* FROM menu_items mi
-            JOIN event_menu em ON mi.item_id = em.item_id
-            WHERE em.event_id = :event_id",
-            [':event_id' => $eventId]
-        );
-        respondWithSuccess(200, "Menu items for event $eventId retrieved", $menuItems);
-    } catch (Exception $e) {
-        respondWithError("Failed to fetch menu items for event: " . $e->getMessage(), 500);
-    }
+    respondSuccess($menuItems);
 }
 
+// Create a new menu item
 function createMenuItem() {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $name = $data['name'] ?? '';
-    $description = $data['description'] ?? '';
-    $price = $data['price'] ?? 0;
+    $requiredFields = [
+        'item_name' => 'string',
+        'item_type' => 'string',
+        'item_fancy_description' => 'string',
+        'item_price' => 'decimal'
+    ];
 
-    if (empty($name) || empty($description)) {
-        respondWithError("Menu item name and description are required", 400);
-    }
+    $data = getValidHttpBody($requiredFields)[0];
 
-    try {
-        // Insert new menu item into the database
-        $result = executeChange(
-            "INSERT INTO menu_items (name, description, price) VALUES (:name, :description, :price)",
-            [':name' => $name, ':description' => $description, ':price' => $price]
-        );
+    $menuItemId = executeInsert(
+        "INSERT INTO menu_items (item_name, item_type, item_fancy_description, item_price)
+         VALUES (:item_name, :item_type, :item_fancy_description, :item_price)",
+        $data
+    );
 
-        if ($result) {
-            respondWithSuccess(201, "Menu item created successfully");
-        } else {
-            respondWithError("Failed to create menu item", 500);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to create menu item: " . $e->getMessage(), 500);
-    }
+    respondSuccess(['menu_item_id' => $menuItemId], 201);
 }
 
-function updateMenuItem($segments) {
-    $itemId = $segments[1] ?? null;
-    $data = json_decode(file_get_contents("php://input"), true);
+// Update an existing menu item
+function updateMenuItem() {
+    $requiredFields = [
+        'item_name' => 'string',
+        'item_type' => 'string',
+        'item_fancy_description' => 'string',
+        'item_price' => 'decimal'
+    ];
 
-    if (empty($itemId) || empty($data)) {
-        respondWithError("Menu item ID and data are required", 400);
-    }
+    $data = getValidHttpBody($requiredFields)[0];
 
-    $name = $data['name'] ?? null;
-    $description = $data['description'] ?? null;
-    $price = isset($data['price']) ? $data['price'] : null;
+    $result = executeChange(
+        "UPDATE menu_items SET
+        item_name = :item_name,
+        item_type = :item_type,
+        item_fancy_description = :item_fancy_description,
+        item_price = :item_price
+        WHERE menu_item_id = :menu_item_id",
+        array_merge($data, ['menu_item_id' => $data['menu_item_id']])
+    );
 
-    $updateFields = [];
-    $params = [':item_id' => $itemId];
-
-    if ($name !== null) {
-        $updateFields[] = "name = :name";
-        $params[':name'] = $name;
-    }
-
-    if ($description !== null) {
-        $updateFields[] = "description = :description";
-        $params[':description'] = $description;
-    }
-
-    if ($price !== null) {
-        $updateFields[] = "price = :price";
-        $params[':price'] = $price;
-    }
-
-    if (empty($updateFields)) {
-        respondWithError("No data to update", 400);
-    }
-
-    try {
-        // Update menu item in the database
-        $query = "UPDATE menu_items SET " . implode(", ", $updateFields) . " WHERE item_id = :item_id";
-        $result = executeChange($query, $params);
-
-        if ($result) {
-            respondWithSuccess(200, "Menu item updated successfully");
-        } else {
-            respondWithError("Menu item not found or no changes made", 404);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to update menu item: " . $e->getMessage(), 500);
-    }
+    respondSuccess(null);
 }
 
-function deleteMenuItem($segments) {
-    $itemId = $segments[1] ?? null;
-
-    if (empty($itemId)) {
-        respondWithError("Menu item ID is required", 400);
-    }
-
-    try {
-        // Delete menu item from the database
-        $result = executeChange(
-            "DELETE FROM menu_items WHERE item_id = :item_id",
-            [':item_id' => $itemId]
-        );
-
-        if ($result) {
-            respondWithSuccess(200, "Menu item deleted successfully");
-        } else {
-            respondWithError("Menu item not found", 204);
-        }
-    } catch (Exception $e) {
-        respondWithError("Failed to delete menu item: " . $e->getMessage(), 500);
-    }
-}
 ?>

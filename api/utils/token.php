@@ -50,14 +50,12 @@ function storeRefreshToken($userId, $role) {
     return $token;
 }
 
-// Largely unchanged, but updated to work with new token structure
 function expireOldTokens($userId) {
     return executeChange("UPDATE refresh_tokens SET is_expired = TRUE WHERE user_id = :user_id AND is_expired = FALSE", [
         ':user_id' => $userId
     ]);
 }
 
-// Largely unchanged
 function markTokenAsExpired($token) {
     return executeChange("UPDATE refresh_tokens SET is_expired = TRUE WHERE token = :token", [':token' => $token]);
 }
@@ -114,7 +112,6 @@ function refreshJwt($refreshToken) {
     ];
 }
 
-// Unchanged
 function validateAuthorization($header) {
     if (!$header) {
         return null;

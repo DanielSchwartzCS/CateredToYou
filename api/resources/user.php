@@ -1,133 +1,49 @@
 <?php
-//api/resources/user.php
-require_once 'dbcontroller.php';
-require_once 'response.php';
-require_once 'validators.php';
+// api/resources/user.php
+require_once __DIR__ . '/../database/dbcontroller.php';
+require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../data-processors/input.php';
+
+// Helper function to check if user exists by ID
+function checkUserExists($userId) {
+    $existingUser = executeSelect(
+        "SELECT user_id FROM users WHERE user_id = :user_id",
+        [':user_id' => $userId],
+        false
+    );
+
+    return $existingUser ? true : false;
+}
 
 // Fetch all users
-function fetchAllUsers($segments) {
-    respondWithSuccess("All users retrieved", 200, executeSelect("SELECT * FROM users"));
+function fetchAllUsers() {
+    $users = executeSelect("SELECT * FROM users");
+
+    if (empty($users)) {
+        respondSuccess(null, 204);
+    }
+
+    respondSuccess($users);
 }
 
-// Fetch a specific user
-function fetchUser($segments) {
-    $user_id = validateResource($segments[0]);
-
-    if (!$user_id && is_numeric($user_id)) {
-        respondWithError("User ID is required and should be numeric", 400);
+// Fetch user by ID
+function fetchUserById($userId) {
+    if (!checkUserExists($userId)) {
+        respondError("User not found", 404);
     }
-    $response = executeSelect(
+
+    $user = executeSelect(
         "SELECT * FROM users WHERE user_id = :user_id",
-        [':user_id' => $user_id], false
+        [':user_id' => $userId],
+        false
     );
-    if ($response) {
-        respondWithSuccess("User $user_id retrieved", 200, $response);
-    } else {
-        respondWithError("User not found", 204);
-    }
-}
 
-// Change user password
-function changePassword($segments) {
-    $user_id = $segments[0] ?? null;
-    $inputData = json_decode(file_get_contents('php://input'), true);
-    $newPassword = $inputData['new_password'] ?? null;
-
-    if (!$user_id || !is_numeric($user_id) || !$newPassword) {
-        respondWithError("Numerical user ID and new password are required", 400);
-    }
-
-    $password_hash = password_hash($newPassword, PASSWORD_DEFAULT);
-    if (!executeChange(
-        "UPDATE users SET password_hash = :password_hash WHERE user_id = :user_id",
-        [':password_hash' => $password_hash, ':user_id' => $user_id]
-    )) {
-        respondWithError("Failed to change password", 500);
-    }
-}
-
-// Change user details (excluding role and password)
-function changeUserDetails($segments) {
-    $user_id = $segments[0] ?? null;
-    $inputData = json_decode(file_get_contents('php://input'), true);
-
-    if (!$user_id || !is_numeric($user_id)) {
-        respondWithError("User ID is required and should be numeric", 400);
-    }
-
-    // Validate required fields (first_name, last_name, phone, email, employment_status)
-    $fields = ['first_name', 'last_name', 'phone', 'email', 'employment_status'];
-    foreach ($fields as $field) {
-        if (!isset($inputData[$field]) || empty($inputData[$field])) {
-            respondWithError("Field $field is required", 400);
-        }
-    }
-
-    // Update user details
-    if (!executeChange(
-        "UPDATE users SET first_name = :first_name, last_name = :last_name,
-         phone = :phone, email = :email,
-         employment_status = :employment_status WHERE user_id = :user_id",
-        [
-            ':first_name' => $inputData['first_name'],
-            ':last_name' => $inputData['last_name'],
-            ':phone' => $inputData['phone'],
-            ':email' => $inputData['email'],
-            ':employment_status' => $inputData['employment_status'],
-            ':user_id' => $user_id
-        ]
-    )) {
-        respondWithError("Failed to update user details", 500);
-    }
-
-    respondWithSuccess("User details updated successfully", 200);
-}
-
-// Change user employment status
-function changeEmploymentStatus($segments) {
-    $user_id = $segments[1] ?? null;
-    $inputData = json_decode(file_get_contents('php://input'), true);
-    $employment_status = $inputData['employment_status'] ?? null;
-
-    if (!$user_id || !is_numeric($user_id) || !$employment_status) {
-        respondWithError("User ID and employment status are required", 400);
-    }
-
-    // Update employment status
-    if (!executeChange(
-        "UPDATE users SET employment_status = :employment_status WHERE user_id = :user_id",
-        [':employment_status' => $employment_status, ':user_id' => $user_id]
-    )) {
-        respondWithError("Failed to update employment status", 500);
-    }
-
-    respondWithSuccess("Employment status updated successfully", 200);
-}
-
-// Change user role
-function changeUserRole($segments) {
-    $user_id = $segments[1] ?? null;
-    $inputData = json_decode(file_get_contents('php://input'), true);
-    $role = $inputData['role'] ?? null;
-
-    if (!$user_id || !is_numeric($user_id) || !$role || !in_array($role, ['caterer', 'employee'])) {
-        respondWithError("User ID and valid role ('caterer' or 'employee') are required", 400);
-    }
-
-    // Update role
-    if (!executeChange(
-        "UPDATE users SET role = :role WHERE user_id = :user_id",
-        [':role' => $role, ':user_id' => $user_id]
-    )) {
-        respondWithError("Failed to update user role", 500);
-    }
-
-    respondWithSuccess("User role updated successfully", 200);
+    respondSuccess($user);
 }
 
 // Create a new user
-function createUser($segments) {
-    $fieldsAndTypes = [
+function createUser() {
+    $requiredFields = [
         'first_name' => 'string',
         'last_name' => 'string',
         'phone' => 'string',
@@ -137,42 +53,110 @@ function createUser($segments) {
         'password' => 'string'
     ];
 
-    $inputData = validateBody($fieldsAndTypes);
+    $data = getValidHttpBody($requiredFields)[0];
 
-    if (!in_array($inputData['employment_status'], ['Active', 'Probation', 'On Leave', 'Exited'])) {
-        respondWithError("Invalid employment status", 400);
+    if (!in_array($data['employment_status'], ['Active', 'Probation', 'On Leave', 'Exited'])) {
+        respondError("Invalid employment status", 400);
     }
 
-    $existingUser = executeSelect(
-        "SELECT * FROM users WHERE email = :email",
-        [':email' => $inputData['email']],
-        false
+    $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
+
+    $userId = executeInsert(
+        "INSERT INTO users (first_name, last_name, phone, email, employment_status, role, password_hash)
+        VALUES (:first_name, :last_name, :phone, :email, :employment_status, :role, :password_hash)",
+        array_merge($data, ['password_hash' => $password_hash])
     );
 
-    if ($existingUser) {
-        respondWithError("Email address is already in use", 400);
+    respondSuccess(['user_id' => $userId], 201);
+}
+
+// Update user details
+function updateUserDetails($userId) {
+    if (!checkUserExists($userId)) {
+        respondError("User not found", 404);
     }
 
-    $password_hash = password_hash($inputData['password'], PASSWORD_DEFAULT);
+    $updateFields = [
+        'first_name' => 'string',
+        'last_name' => 'string',
+        'phone' => 'string',
+        'email' => 'email',
+        'employment_status' => 'string'
+    ];
+
+    $data = getValidHttpBody($updateFields)[0];
 
     $result = executeChange(
-        "INSERT INTO users (first_name, last_name, phone, email, employment_status, role, password_hash)
-         VALUES (:first_name, :last_name, :phone, :email, :employment_status, :role, :password_hash)",
-        [
-            ':first_name' => $inputData['first_name'],
-            ':last_name' => $inputData['last_name'],
-            ':phone' => $inputData['phone'],
-            ':email' => $inputData['email'],
-            ':employment_status' => $inputData['employment_status'],
-            ':role' => $inputData['role'],
-            ':password_hash' => $password_hash
-        ]
+        "UPDATE users SET first_name = :first_name, last_name = :last_name,
+        phone = :phone, email = :email, employment_status = :employment_status
+        WHERE user_id = :user_id",
+        array_merge($data, ['user_id' => $userId])
     );
 
-    if (!$result) {
-        respondWithError("Failed to create user", 500);
+    respondSuccess(null);
+}
+
+// Update user role
+function updateUserRole($userId) {
+    if (!checkUserExists($userId)) {
+        respondError("User not found", 404);
     }
 
-    respondWithSuccess("User created successfully", 201);
+    $requiredFields = ['role' => 'string'];
+
+    $data = getValidHttpBody($requiredFields)[0];
+
+    if (!in_array($data['role'], ['caterer', 'employee'])) {
+        respondError("Invalid role", 400);
+    }
+
+    $result = executeChange(
+        "UPDATE users SET role = :role WHERE user_id = :user_id",
+        array_merge($data, ['user_id' => $userId])
+    );
+
+    respondSuccess(null);
+}
+
+// Change user password
+function updatePassword($userId) {
+    if (!checkUserExists($userId)) {
+        respondError("User not found", 404);
+    }
+
+    $requiredFields = ['new_password' => 'string'];
+
+    $data = getValidHttpBody($requiredFields)[0];
+
+    $password_hash = password_hash($data['new_password'], PASSWORD_DEFAULT);
+
+    $result = executeChange(
+        "UPDATE users SET password_hash = :password_hash WHERE user_id = :user_id",
+        [':password_hash' => $password_hash, ':user_id' => $userId]
+    );
+
+    if ($result) {
+        respondSuccess("Password changed");
+    } else {
+        respondError("Password not changed", 400);
+    }
+}
+
+// Change user employment status
+function updateEmploymentStatus($userId) {
+    if (!checkUserExists($userId)) {
+        respondError("User not found", 404);
+    }
+
+    $requiredFields = ['employment_status' => 'string'];
+
+    $data = getValidHttpBody($requiredFields)[0];
+
+    $result = executeChange(
+        "UPDATE users SET employment_status = :employment_status WHERE user_id = :user_id",
+        array_merge($data, ['user_id' => $userId])
+    );
+
+    respondSuccess(null);
 }
 ?>
