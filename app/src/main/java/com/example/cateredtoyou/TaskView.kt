@@ -114,13 +114,16 @@ class TaskView : AppCompatActivity() {
     }
 
 
-    private fun onComplete(taskId: Int){
-        DatabaseApi.retrofitService.updateTasks(taskId).enqueue(object : Callback<Void> {
+    private fun onComplete(taskId: Int, newStatus: String){
+        DatabaseApi.retrofitService.updateTasks(taskId, newStatus).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
-                    taskList.find { it.task_id == taskId }?.status = "Complete"
-                    filterTasks("") // Reapply filter to reflect changes
-                    Toast.makeText(this@TaskView, "Task marked as complete", Toast.LENGTH_SHORT).show()
+                    val task = taskList.find {it.task_id == taskId}
+                    if(task != null){
+                        task.status = newStatus
+                        filterTasks("")
+                    }
+                    Toast.makeText(this@TaskView, "Task updated to $newStatus", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this@TaskView, "Failed to update task status", Toast.LENGTH_SHORT).show()
                 }
