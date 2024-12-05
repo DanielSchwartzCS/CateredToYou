@@ -648,6 +648,7 @@ class EventsActivity : AppCompatActivity() {
                         val eventResponse = response.body()
                         if (eventResponse?.status == true && eventResponse.eventId != null) {
                             submitEventInventory(eventResponse.eventId)
+                            generateTasks(eventResponse.eventId)
                         } else {
                             Log.e(TAG, "Event creation failed: ${eventResponse?.message}")
                             showError(eventResponse?.message ?: getString(R.string.error_server))
@@ -687,6 +688,34 @@ class EventsActivity : AppCompatActivity() {
             hideProgressBar()
         }
     }
+
+    private fun generateTasks(eventId: Int){
+        val menuItems = menuItemsAdapter.getSelectedItems().keys.map { it.inventory_id }
+        val equipmentItems = equipmentAdapter.getSelectedItems().keys.map { it.inventory_id }
+
+        val allInventoryIds = menuItems + equipmentItems
+        val inventoryJson = JSONArray(allInventoryIds).toString()
+
+        Log.d(TAG, "Generating tasks for event $eventId with inventory IDs: $inventoryJson")
+
+        DatabaseApi.retrofitService.generateEventTasks(eventId, inventoryJson).enqueue(object : Callback<BaseResponse>{
+            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                if(response.isSuccessful && response.body()?.status == true){
+                    showSuccess(response.message())
+                    clearInputs()
+                }else{
+                    handleErrorResponse("Failed to generate Tasks", response)
+                }
+                hideProgressBar()
+            }
+
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+                handleNetworkError("Error generating tasks", t)
+                hideProgressBar()
+            }
+        })
+    }
+
 
     private fun submitEventInventory(eventId: Int) {
         val menuItems = menuItemsAdapter.getSelectedItems()

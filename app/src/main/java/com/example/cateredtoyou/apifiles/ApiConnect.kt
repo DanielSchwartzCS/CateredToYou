@@ -96,6 +96,13 @@ interface ApiConnect {
         @Field("additional_info") additionalInfo: String
     ): Call<EventResponse>
 
+    @FormUrlEncoded
+    @POST("generate_tasks.php")
+    fun generateEventTasks(
+        @Field("event_id") eventId: Int,
+        @Field("inventory_ids") inventoryIds: String
+    ): Call<BaseResponse>
+
 
     @GET("get_events.php")
     fun getEvents(): Call<EventsResponse>
