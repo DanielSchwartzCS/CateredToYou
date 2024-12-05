@@ -6,4 +6,6 @@
     <dimen name="list_divider_height">8dp</dimen>
     <dimen name="status_padding_horizontal">12dp</dimen>
     <dimen name="status_padding_vertical">6dp</dimen>
+    <dimen name="card_stroke_width">2dp</dimen>
+    <dimen name="card_stroke_width_normal">1dp</dimen>
 </resources>

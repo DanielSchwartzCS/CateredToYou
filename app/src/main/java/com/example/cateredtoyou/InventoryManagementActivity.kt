@@ -1,3 +1,4 @@
+
 package com.example.cateredtoyou
 
 import android.os.Bundle
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.cateredtoyou.InventoryManagementAdapter
 import com.example.cateredtoyou.apifiles.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
@@ -24,7 +26,7 @@ class InventoryManagementActivity : AppCompatActivity() {
     private val defaultStorageLocationId = 1
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: InventoryManagementAdapter // Using your existing adapter
+    private lateinit var adapter: InventoryManagementAdapter
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var noDataText: TextView
@@ -41,7 +43,6 @@ class InventoryManagementActivity : AppCompatActivity() {
     }
 
     private fun setupViews() {
-        // Initialize views
         recyclerView = findViewById(R.id.recyclerView)
         progressBar = findViewById(R.id.progressBar)
         swipeRefresh = findViewById(R.id.swipeRefresh)
@@ -50,10 +51,9 @@ class InventoryManagementActivity : AppCompatActivity() {
         searchView = findViewById(R.id.searchView)
         categorySpinner = findViewById(R.id.categorySpinner)
 
-        // Setup adapter
         adapter = InventoryManagementAdapter(
             onEdit = { showEditDialog(it) },
-            onDelete = { showDeleteConfirmation(it) }
+            onUpdateQuantity = { item, newQuantity -> updateItemQuantity(item, newQuantity) }
         )
 
         recyclerView.apply {
@@ -63,11 +63,7 @@ class InventoryManagementActivity : AppCompatActivity() {
 
         // Setup category spinner
         val categories = listOf("All") + validCategories
-        ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            categories
-        ).also { spinnerAdapter ->
+        ArrayAdapter(this, android.R.layout.simple_spinner_item, categories).also { spinnerAdapter ->
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             categorySpinner.adapter = spinnerAdapter
         }
@@ -91,7 +87,6 @@ class InventoryManagementActivity : AppCompatActivity() {
                 val category = if (position == 0) null else validCategories[position - 1]
                 adapter.filterByCategory(category)
             }
-
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 adapter.filterByCategory(null)
             }
@@ -100,42 +95,15 @@ class InventoryManagementActivity : AppCompatActivity() {
 
     private fun showAddDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_inventory_item, null)
-        setupInventoryDialog(dialogView, null) { newItem ->
-            showLoading(true)
-            DatabaseApi.retrofitService.addInventoryItem(newItem).enqueue(object : Callback<BaseResponse> {
-                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
-                    handleInventoryResponse(response, "Item added successfully", "Failed to add item")
-                }
-
-                override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                    handleInventoryFailure(t)
-                }
-            })
-        }
+        setupInventoryDialog(dialogView, null, isNewItem = true)
     }
 
     private fun showEditDialog(item: InventoryItem) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_inventory_item, null)
-        setupInventoryDialog(dialogView, item) { updatedItem ->
-            showLoading(true)
-            DatabaseApi.retrofitService.updateInventoryItem(item.inventory_id, updatedItem)
-                .enqueue(object : Callback<BaseResponse> {
-                    override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
-                        handleInventoryResponse(response, "Item updated successfully", "Failed to update item")
-                    }
-
-                    override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                        handleInventoryFailure(t)
-                    }
-                })
-        }
+        setupInventoryDialog(dialogView, item, isNewItem = false)
     }
 
-    private fun setupInventoryDialog(
-        dialogView: View,
-        existingItem: InventoryItem?,
-        onSubmit: (InventoryItem) -> Unit
-    ) {
+    private fun setupInventoryDialog(dialogView: View, existingItem: InventoryItem?, isNewItem: Boolean) {
         val nameInput = dialogView.findViewById<TextInputEditText>(R.id.itemNameInput)
         val categorySpinner = dialogView.findViewById<Spinner>(R.id.categorySpinner)
         val quantityInput = dialogView.findViewById<TextInputEditText>(R.id.quantityInput)
@@ -164,6 +132,7 @@ class InventoryManagementActivity : AppCompatActivity() {
             validCategories.indexOf(item.category).takeIf { it >= 0 }?.let {
                 categorySpinner.setSelection(it)
             }
+
             item.display_unit?.let { unit ->
                 validDisplayUnits.indexOf(unit).takeIf { it >= 0 }?.let {
                     displayUnitSpinner.setSelection(it)
@@ -171,12 +140,23 @@ class InventoryManagementActivity : AppCompatActivity() {
             }
         }
 
-        AlertDialog.Builder(this)
-            .setTitle(if (existingItem == null) "Add Item" else "Edit Item")
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(if (isNewItem) "Add Item" else "Edit Item")
             .setView(dialogView)
-            .setPositiveButton("Save") { dialog, _ ->
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+
+        if (!isNewItem) {
+            dialog.setNeutralButton("Delete") { _, _ ->
+                existingItem?.let { showDeleteConfirmation(it) }
+            }
+        }
+
+        val alertDialog = dialog.create()
+        alertDialog.setOnShowListener {
+            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 if (validateInputs(nameInput, quantityInput, costInput, categorySpinner)) {
-                    val newItem = InventoryItem(
+                    val item = InventoryItem(
                         inventory_id = existingItem?.inventory_id ?: 0,
                         item_name = nameInput.text.toString().trim(),
                         category = categorySpinner.selectedItem.toString(),
@@ -186,11 +166,18 @@ class InventoryManagementActivity : AppCompatActivity() {
                         location_id = defaultStorageLocationId,
                         notes = notesInput.text.toString().trim()
                     )
-                    onSubmit(newItem)
+
+                    if (isNewItem) {
+                        addInventoryItem(item)
+                    } else {
+                        updateInventoryItem(item)
+                    }
+                    alertDialog.dismiss()
                 }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+
+        alertDialog.show()
     }
 
     private fun validateInputs(
@@ -227,6 +214,52 @@ class InventoryManagementActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ -> deleteInventoryItem(item) }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun addInventoryItem(item: InventoryItem) {
+        showLoading(true)
+        DatabaseApi.retrofitService.addInventoryItem(item).enqueue(object : Callback<BaseResponse> {
+            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                handleInventoryResponse(response, "Item added successfully", "Failed to add item")
+            }
+
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+                handleInventoryFailure(t)
+            }
+        })
+    }
+
+    private fun updateInventoryItem(item: InventoryItem) {
+        showLoading(true)
+        DatabaseApi.retrofitService.updateInventoryItem(item.inventory_id, item)
+            .enqueue(object : Callback<BaseResponse> {
+                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                    handleInventoryResponse(response, "Item updated successfully", "Failed to update item")
+                }
+
+                override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+                    handleInventoryFailure(t)
+                }
+            })
+    }
+
+    private fun updateItemQuantity(item: InventoryItem, newQuantity: Float) {
+        showLoading(true)
+        val updatedItem = item.copy(
+            quantity_in_stock = newQuantity,
+            location_id = item.location_id  // Maintain the original location_id
+        )
+
+        DatabaseApi.retrofitService.updateInventoryItem(item.inventory_id, updatedItem)
+            .enqueue(object : Callback<BaseResponse> {
+                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
+                    handleInventoryResponse(response, "Quantity updated", "Failed to update quantity")
+                }
+
+                override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
+                    handleInventoryFailure(t)
+                }
+            })
     }
 
     private fun deleteInventoryItem(item: InventoryItem) {

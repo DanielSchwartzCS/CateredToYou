@@ -15,6 +15,7 @@
             android:id="@+id/itemNameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="text"
             android:maxLength="255" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -22,13 +23,13 @@
         android:id="@+id/categorySpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:minHeight="48dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:hint="Quantity">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -41,7 +42,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:hint="Cost Per Unit">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -55,13 +56,13 @@
         android:id="@+id/displayUnitSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:minHeight="48dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:hint="Notes">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -72,5 +73,4 @@
             android:inputType="textMultiLine"
             android:lines="3" />
     </com.google.android.material.textfield.TextInputLayout>
-
 </LinearLayout>

@@ -10,4 +10,7 @@
     <color name="status_completed">#2196F3</color>
     <color name="status_canceled">#F44336</color>
     <color name="selected_card_background">#E3F2FD</color>
+    <color name="low_stock_warning">#FFE57F</color>
+    <color name="medium_stock_warning">#90CAF9</color>
+    <color name="normal_stock">#CCCCCC</color>
 </resources>
