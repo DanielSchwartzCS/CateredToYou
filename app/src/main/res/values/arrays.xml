@@ -6,4 +6,13 @@
         <item>Completed</item>
         <item>Canceled</item>
     </string-array>
+    <string-array name="inventory_categories">
+        <item>Select Category</item>
+        <item>Food</item>
+        <item>Beverage</item>
+        <item>Equipment</item>
+        <item>Raw</item>
+        <item>Utensil</item>
+        <item>Decoration</item>
+    </string-array>
 </resources>

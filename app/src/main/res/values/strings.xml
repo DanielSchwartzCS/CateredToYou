@@ -69,4 +69,23 @@
 
     <!--    Text for signup spinner employment status-->
     <string name="employment_status_prompt">Select Employment Status</string>
+
+
+    <string name="item_added">Item added successfully</string>
+    <string name="add_failed">Failed to add item</string>
+    <string name="item_updated">Item updated successfully</string>
+    <string name="update_failed">Failed to update item</string>
+    <string name="item_deleted">Item deleted successfully</string>
+    <string name="delete_failed">Failed to delete item</string>
+    <string name="load_failed">Failed to load inventory</string>
+    <string name="network_error">Network error</string>
+    <string name="name_required">Name is required</string>
+    <string name="quantity_required">Quantity is required</string>
+    <string name="cost_required">Cost is required</string>
+    <string name="delete_item">Delete Item</string>
+    <string name="delete_confirm">Are you sure you want to delete %s?</string>
+    <string name="add_item">Add Item</string>
+    <string name="edit_item">Edit Item</string>
+    <string name="delete_failed_item_in_use">Cannot delete item. It is being used in an event.</string>
+    <string name="category_required">Please select a category</string>
 </resources>

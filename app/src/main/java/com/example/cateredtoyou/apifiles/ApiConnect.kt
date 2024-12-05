@@ -142,6 +142,23 @@ interface ApiConnect {
             return TODO("Provide the return value")
         }
     }
+    @POST("add_inventory.php")
+    @Headers("Content-Type: application/json")
+    fun addInventoryItem(@Body item: InventoryItem): Call<BaseResponse>
+
+    @POST("update_inventory_item.php")
+    @Headers("Content-Type: application/json")
+    fun updateInventoryItem(
+        @Query("id") id: Int,
+        @Body item: InventoryItem
+    ): Call<BaseResponse>
+
+    @POST("delete_inventory.php")
+    @FormUrlEncoded
+    fun deleteInventoryItem(
+        @Field("inventory_id") id: Int
+    ): Call<BaseResponse>
+
 
 
 }

@@ -33,7 +33,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".InventoryActivity"
+            android:name=".InventoryManagementActivity"
             android:exported="false" />
 
         <activity

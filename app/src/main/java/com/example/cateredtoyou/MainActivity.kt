@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
 
         val btnInventory: Button = findViewById(R.id.btn_inventory)
         btnInventory.setOnClickListener {
-            val intent = Intent(this, InventoryActivity::class.java)
+            val intent = Intent(this, InventoryManagementActivity::class.java)
             val options = ActivityOptions.makeCustomAnimation(
                 this, R.anim.slide_in_right, R.anim.slide_out_left
             )
